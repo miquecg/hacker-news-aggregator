@@ -25,14 +25,20 @@ defmodule HackerNews.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.6", only: [:dev], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
 
   defp aliases do
     [
-      test: ["format --check-formatted", "credo --strict", "test"]
+      check: [
+        "format --check-formatted",
+        "compile --all-warnings --warnings-as-errors",
+        "credo --strict",
+        "dialyzer"
+      ],
+      test: ["test --warnings-as-errors"]
     ]
   end
 end
