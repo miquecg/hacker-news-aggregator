@@ -13,4 +13,12 @@ defmodule HackerNews.RouterTest do
     [story] = body["items"]
     assert story["id"] == 8863
   end
+
+  test "route not found" do
+    conn = conn(:get, "/not-found")
+
+    conn = Router.call(conn, @opts)
+
+    assert conn.status == 404
+  end
 end
