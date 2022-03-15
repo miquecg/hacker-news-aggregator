@@ -25,6 +25,8 @@ defmodule HackerNews.MixProject do
 
   defp deps do
     [
+      {:jason, "~> 1.3"},
+      {:plug_cowboy, "~> 2.5"},
       {:credo, "~> 1.6", only: [:dev], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
