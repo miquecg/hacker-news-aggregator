@@ -12,7 +12,7 @@ defmodule HackerNews.Application do
         plug: HackerNews.Router,
         options: [
           dispatch: dispatch(),
-          port: 4001
+          port: port()
         ]
       }
     ]
@@ -29,5 +29,10 @@ defmodule HackerNews.Application do
          {:_, Plug.Cowboy.Handler, {HackerNews.Router, []}}
        ]}
     ]
+  end
+
+  defp port do
+    port = System.get_env("PORT", "4001")
+    String.to_integer(port)
   end
 end
