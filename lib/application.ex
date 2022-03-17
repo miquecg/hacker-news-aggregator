@@ -3,13 +3,16 @@ defmodule HackerNews.Application do
 
   use Application
 
+  alias HackerNews.{Repo, Router, WebsocketHandler}
+
   @impl true
   def start(_type, _args) do
     children = [
+      {Repo, name: :stories},
       {
         Plug.Cowboy,
         scheme: :http,
-        plug: HackerNews.Router,
+        plug: Router,
         options: [
           dispatch: dispatch(),
           port: port()
@@ -25,8 +28,8 @@ defmodule HackerNews.Application do
     [
       {:_,
        [
-         {"/ws", HackerNews.WebsocketHandler, []},
-         {:_, Plug.Cowboy.Handler, {HackerNews.Router, []}}
+         {"/ws", WebsocketHandler, []},
+         {:_, Plug.Cowboy.Handler, {Router, []}}
        ]}
     ]
   end
