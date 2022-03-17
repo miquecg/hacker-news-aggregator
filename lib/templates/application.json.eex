@@ -1,0 +1,5 @@
+{
+  "items": <%= Jason.encode_to_iodata!(stories) %>,
+  "items_number": <%= length(stories) %>,
+  "more": null
+}
