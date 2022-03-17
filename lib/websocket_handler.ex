@@ -12,7 +12,7 @@ defmodule HackerNews.WebsocketHandler do
 
   @impl :cowboy_websocket
   def websocket_init(state) do
-    {[{:text, "ok"}], state}
+    {[{:text, "[]"}], state}
   end
 
   @impl :cowboy_websocket
