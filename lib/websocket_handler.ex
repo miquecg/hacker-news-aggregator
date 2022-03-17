@@ -12,12 +12,13 @@ defmodule HackerNews.WebsocketHandler do
 
   @impl :cowboy_websocket
   def websocket_init(state) do
-    {[{:text, "[]"}], state}
+    commands = [{:active, false}, {:text, "[]"}]
+    {commands, state, :hibernate}
   end
 
   @impl :cowboy_websocket
   def websocket_handle(_, state) do
-    {[{:active, false}], state}
+    {[], state}
   end
 
   @impl :cowboy_websocket
