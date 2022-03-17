@@ -5,12 +5,12 @@ defmodule HackerNews.RouterTest do
     conn = conn(:get, "/stories")
 
     conn = Router.call(conn, @opts)
-    body = json_response(conn, 200)
+    stories = json_response(conn, 200)
 
-    assert body["items_number"] == 1
-    assert body["more"] == nil
+    assert stories["items_number"] == 1
+    assert stories["more"] == nil
 
-    [story] = body["items"]
+    [story] = stories["items"]
     assert story["id"] == 8863
   end
 
