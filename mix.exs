@@ -28,10 +28,11 @@ defmodule HackerNews.MixProject do
     [
       {:jason, "~> 1.3"},
       {:plug_cowboy, "~> 2.5"},
-      {:credo, "~> 1.6", only: [:dev], runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:sobelow, "~> 0.11.1", only: [:dev]},
-      {:mint_web_socket, "~> 0.3.0", only: [:test]}
+      {:credo, "~> 1.6", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.0", only: :dev, runtime: false},
+      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
+      {:sobelow, "~> 0.11.1", only: :dev},
+      {:mint_web_socket, "~> 0.3.0", only: :test}
     ]
   end
 
