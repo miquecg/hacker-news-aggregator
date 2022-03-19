@@ -8,11 +8,10 @@ defmodule HackerNews.Router do
 
   get "/stories" do
     stories = HackerNews.get_top_stories()
-    data = StoryView.render("collection.json", stories)
 
     conn
-    |> put_resp_content_type("application/json")
-    |> send_resp(200, data)
+    |> render("collection.json", stories)
+    |> send_resp()
   end
 
   match _ do
