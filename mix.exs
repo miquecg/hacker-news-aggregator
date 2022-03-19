@@ -10,15 +10,9 @@ defmodule HackerNews.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      dialyzer: [
-        plt_local_path: "priv/plts",
-        flags: [:unmatched_returns, :error_handling, :race_conditions, :underspecs]
-      ]
+      dialyzer: dialyzer()
     ]
   end
-
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_), do: ["lib"]
 
   def application do
     [
@@ -26,6 +20,9 @@ defmodule HackerNews.MixProject do
       mod: {HackerNews.Application, []}
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
     [
@@ -48,6 +45,18 @@ defmodule HackerNews.MixProject do
         "dialyzer"
       ],
       test: ["test --warnings-as-errors"]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_local_path: "priv/plts",
+      flags: [
+        :unmatched_returns,
+        :error_handling,
+        :race_conditions,
+        :underspecs
+      ]
     ]
   end
 end
