@@ -1,7 +1,5 @@
 defmodule HackerNews.Router do
-  @plug_init_mode Application.compile_env(:hacker_news, :plug_init_mode, :compile)
-
-  use Plug.Router, init_mode: @plug_init_mode
+  use HackerNewsWeb, :router
   use Plug.ErrorHandler
 
   plug Plug.Logger
