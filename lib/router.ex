@@ -4,18 +4,9 @@ defmodule HackerNews.Router do
   use Plug.Router, init_mode: @plug_init_mode
   use Plug.ErrorHandler
 
-  require EEx
-
   plug Plug.Logger
   plug :match
   plug :dispatch
-
-  EEx.function_from_file(
-    :defp,
-    :application_json,
-    "lib/templates/application.json.eex",
-    [:stories]
-  )
 
   get "/stories" do
     stories = HackerNews.get_top_stories()
@@ -27,7 +18,7 @@ defmodule HackerNews.Router do
   end
 
   defp render_json(conn, stories) do
-    data = application_json(stories)
+    data = HackerNewsWeb.StoryView.render("collection.json", stories)
 
     conn
     |> put_resp_content_type("application/json")
