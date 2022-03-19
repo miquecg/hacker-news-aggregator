@@ -1,4 +1,4 @@
-defmodule HackerNews.WebsocketHandler do
+defmodule HackerNewsWeb.WebsocketHandler do
   @moduledoc """
   Handles WebSocket handshake and connection.
   """

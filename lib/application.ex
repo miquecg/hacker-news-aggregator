@@ -3,7 +3,8 @@ defmodule HackerNews.Application do
 
   use Application
 
-  alias HackerNews.{Repo, Router, WebsocketHandler}
+  alias HackerNews.Repo
+  alias HackerNewsWeb.{Router, WebsocketHandler}
 
   @impl true
   def start(_type, _args) do

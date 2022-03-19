@@ -1,4 +1,4 @@
-defmodule HackerNews.RouterTest do
+defmodule HackerNewsWeb.RouterTest do
   use HackerNews.ConnCase, async: true
 
   test "get /stories returns json" do

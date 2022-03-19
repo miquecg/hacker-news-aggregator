@@ -1,4 +1,4 @@
-defmodule HackerNews.Router do
+defmodule HackerNewsWeb.Router do
   use HackerNewsWeb, :router
   use Plug.ErrorHandler
 

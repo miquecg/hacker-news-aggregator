@@ -12,7 +12,7 @@ defmodule HackerNews.ConnCase do
       import Plug.Conn
       import Plug.Test
 
-      alias HackerNews.Router
+      alias HackerNewsWeb.Router
 
       @opts Router.init([])
     end

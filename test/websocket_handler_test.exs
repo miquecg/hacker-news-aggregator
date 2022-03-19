@@ -1,4 +1,4 @@
-defmodule HackerNews.WebsocketHandlerTest do
+defmodule HackerNewsWeb.WebsocketHandlerTest do
   use HackerNews.WebsocketCase, async: true
 
   test "websocket sends stories upon connection", context do
