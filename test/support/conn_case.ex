@@ -2,6 +2,7 @@ defmodule HackerNews.ConnCase do
   @moduledoc """
   Test case and helpers for tests that require a connection.
   """
+
   use ExUnit.CaseTemplate
 
   alias Plug.Conn

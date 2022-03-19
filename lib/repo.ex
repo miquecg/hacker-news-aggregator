@@ -2,6 +2,7 @@ defmodule HackerNews.Repo do
   @moduledoc """
   Access to data storage for Hacker News API.
   """
+
   use Agent
 
   @top_stories [

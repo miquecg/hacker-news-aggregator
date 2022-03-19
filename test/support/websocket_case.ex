@@ -2,6 +2,7 @@ defmodule HackerNews.WebsocketCase do
   @moduledoc """
   Test case and helpers for tests that require a WebSocket.
   """
+
   use ExUnit.CaseTemplate
 
   using do
