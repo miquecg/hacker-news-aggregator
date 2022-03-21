@@ -1,0 +1,48 @@
+defmodule HackerNewsApi.DataParser do
+  @moduledoc """
+  Data parsing utilities.
+  """
+
+  @typep uri :: URI.t() | String.t()
+  @typep wrong_uri :: :malformed | :missing_scheme | :missing_path | :missing_host
+
+  @typep ok(t) :: {:ok, t}
+  @typep error(t) :: {:error, t}
+
+  @spec parse_url(uri, Access.t()) :: ok(URI.t()) | error(wrong_uri)
+  def parse_url(uri, params)
+
+  def parse_url(uri, params) when is_binary(uri) do
+    case URI.new(uri) do
+      {:ok, uri} -> parse_url(uri, params)
+      {:error, _} -> {:error, :malformed}
+    end
+  end
+
+  def parse_url(uri = %URI{scheme: nil}, params) do
+    case params[:scheme] do
+      nil -> {:error, :missing_scheme}
+      scheme -> parse_url("#{scheme}://#{to_string(uri)}", params)
+    end
+  end
+
+  def parse_url(uri = %URI{path: "/"}, params) do
+    parse_url(%{uri | path: nil}, params)
+  end
+
+  def parse_url(uri = %URI{path: nil}, params) do
+    case params[:path] do
+      nil ->
+        {:error, :missing_path}
+
+      path ->
+        uri = URI.merge(uri, path)
+        parse_url(uri, params)
+    end
+  end
+
+  def parse_url(%URI{host: nil}, _), do: {:error, :missing_host}
+  def parse_url(%URI{host: ""}, _), do: {:error, :missing_host}
+
+  def parse_url(uri = %URI{}, _), do: {:ok, uri}
+end
