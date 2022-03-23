@@ -33,7 +33,7 @@ defmodule HackerNewsApi.Resource.TopStories do
     struct(__MODULE__, url: to_string(url))
   end
 
-  defimpl HackerNewsApi.HttpResource do
+  defimpl HackerNewsApi.Resource do
     def request(%{url: url}), do: {:get, url, []}
   end
 end

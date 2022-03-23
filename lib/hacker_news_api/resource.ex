@@ -1,4 +1,4 @@
-defprotocol HackerNewsApi.HttpResource do
+defprotocol HackerNewsApi.Resource do
   @moduledoc """
   Protocol that HTTP resources of the Hacker News API must implement.
   """
