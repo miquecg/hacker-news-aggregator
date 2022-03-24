@@ -10,6 +10,7 @@ defmodule HackerNews.Application do
   def start(_type, _args) do
     children = [
       {Repo, name: :stories},
+      {Finch, name: :finch},
       {
         Plug.Cowboy,
         scheme: :http,
