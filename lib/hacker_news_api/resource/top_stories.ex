@@ -14,7 +14,7 @@ defmodule HackerNewsApi.Resource.TopStories do
   @type option :: {:scheme, String.t()} | {:path, String.t()}
   @type opts :: [option]
 
-  @defaults [scheme: "https", path: "/v0/topstories"]
+  @defaults [scheme: "https", path: "/v0/topstories.json"]
 
   @doc """
   Creates a `__MODULE__` struct.
