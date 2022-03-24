@@ -19,18 +19,18 @@ defmodule HackerNewsApi.DataParser do
     end
   end
 
-  def parse_url(uri = %URI{scheme: nil}, params) do
+  def parse_url(%URI{scheme: nil} = uri, params) do
     case params[:scheme] do
       nil -> {:error, :missing_scheme}
       scheme -> parse_url("#{scheme}://#{to_string(uri)}", params)
     end
   end
 
-  def parse_url(uri = %URI{path: "/"}, params) do
+  def parse_url(%URI{path: "/"} = uri, params) do
     parse_url(%{uri | path: nil}, params)
   end
 
-  def parse_url(uri = %URI{path: nil}, params) do
+  def parse_url(%URI{path: nil} = uri, params) do
     case params[:path] do
       nil ->
         {:error, :missing_path}
@@ -44,5 +44,5 @@ defmodule HackerNewsApi.DataParser do
   def parse_url(%URI{host: nil}, _), do: {:error, :missing_host}
   def parse_url(%URI{host: ""}, _), do: {:error, :missing_host}
 
-  def parse_url(uri = %URI{}, _), do: {:ok, uri}
+  def parse_url(%URI{} = uri, _), do: {:ok, uri}
 end
