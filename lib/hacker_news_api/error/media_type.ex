@@ -1,4 +1,4 @@
-defmodule HackerNewsApi.Client.MediaTypeError do
+defmodule HackerNewsApi.Error.MediaType do
   @moduledoc """
   Exception for media-type errors.
   """
@@ -15,7 +15,9 @@ defmodule HackerNewsApi.Client.MediaTypeError do
   end
 
   @impl true
-  def exception({<<_::binary>> = type_subtype, <<_::binary>> = charset}) do
+  def exception(info) do
+    {type_subtype, charset} = Access.fetch!(info, :unsupported)
+
     %__MODULE__{
       message: "unsupported media-type: #{type_subtype};charset=#{charset}"
     }

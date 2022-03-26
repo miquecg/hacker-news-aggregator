@@ -3,7 +3,7 @@ defmodule HackerNewsApi.Client do
   Behaviour that HTTP clients must adhere to.
   """
 
-  alias HackerNewsApi.{Client.MediaTypeError, Client.Response, Resource}
+  alias HackerNewsApi.{Client.Response, Error, Resource}
 
   @adapter Application.compile_env!(:hacker_news, :adapter)
 
@@ -63,10 +63,10 @@ defmodule HackerNewsApi.Client do
   defp match_content_type(response, media_type) do
     case Response.get_content_type(response) do
       {:ok, {^media_type, "utf-8"}} -> :ok
-      {:ok, {_, _} = unsupported} -> media_type_error(unsupported)
+      {:ok, {_, _} = value} -> media_type_error(unsupported: value)
       {:error, :missing} -> media_type_error(:missing)
     end
   end
 
-  defp media_type_error(info), do: {:error, MediaTypeError.exception(info)}
+  defp media_type_error(info), do: {:error, Error.MediaType.exception(info)}
 end
