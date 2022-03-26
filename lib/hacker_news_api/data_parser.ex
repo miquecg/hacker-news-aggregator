@@ -4,12 +4,11 @@ defmodule HackerNewsApi.DataParser do
   """
 
   @typep uri :: URI.t() | String.t()
-  @typep wrong_uri :: :malformed | :missing_scheme | :missing_path | :missing_host
-
   @typep ok(t) :: {:ok, t}
   @typep error(t) :: {:error, t}
+  @typep not_url :: error(:malformed | :missing_scheme | :missing_path | :missing_host)
 
-  @spec parse_url(uri, Access.t()) :: ok(URI.t()) | error(wrong_uri)
+  @spec parse_url(uri, Access.t()) :: ok(URI.t()) | not_url
   def parse_url(uri, params)
 
   def parse_url(uri, params) when is_binary(uri) do
