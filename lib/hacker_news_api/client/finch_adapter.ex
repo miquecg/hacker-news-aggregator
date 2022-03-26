@@ -17,11 +17,11 @@ defmodule HackerNewsApi.Client.FinchAdapter do
     end
   end
 
-  @spec transform(Finch.Response.t()) :: Client.Response.t()
   defp transform(response) do
     response
     |> Map.take([:status, :headers])
     |> Map.put(:raw_body, response.body)
+    |> Map.to_list()
     |> Client.Response.new()
   end
 end
