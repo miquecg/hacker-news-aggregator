@@ -15,9 +15,9 @@ defmodule HackerNewsApi.Client.MediaTypeError do
   end
 
   @impl true
-  def exception(<<_::binary>> = unsupported) do
+  def exception({<<_::binary>> = type_subtype, <<_::binary>> = charset}) do
     %__MODULE__{
-      message: "unsupported media-type: #{unsupported}"
+      message: "unsupported media-type: #{type_subtype};charset=#{charset}"
     }
   end
 end

@@ -1,5 +1,9 @@
 import Config
 
+alias HackerNewsApi.Client.FinchAdapter
+
+config :hacker_news, :adapter, FinchAdapter
+
 config :hacker_news, :api, host: "hacker-news.firebaseio.com"
 
 config :logger,

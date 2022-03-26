@@ -3,15 +3,16 @@ defprotocol HackerNewsApi.Resource do
   Protocol that HTTP resources of the Hacker News API must implement.
   """
 
-  @type url :: String.t()
-  @type headers :: keyword()
-  @type get :: {:get, url, headers}
-
   # Only GET requests at this moment.
-  @type request :: get
+  @type method :: :get
+  @type url :: String.t()
+  @type header :: {name :: String.t(), value :: String.t()}
+  @type headers :: [header]
+
+  @type request :: {method, url, headers}
 
   @doc """
-  Must return a tuple representing one kind of `t:request/0`.
+  Must return a tuple representing a `t:request/0`.
   """
   @spec request(t) :: request
   def request(resource)
