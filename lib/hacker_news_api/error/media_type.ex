@@ -3,9 +3,9 @@ defmodule HackerNewsApi.Error.MediaType do
   Exception for media-type errors.
   """
 
-  @type t :: %__MODULE__{}
-
   defexception [:message]
+
+  @type t :: %__MODULE__{}
 
   @impl true
   def exception(:missing) do
