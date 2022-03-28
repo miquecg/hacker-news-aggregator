@@ -16,10 +16,7 @@ defmodule HackerNewsApi.Error.Params do
 
   @impl true
   def message(exception) do
-    lines =
-      exception.params
-      |> Enum.map(&build_line/1)
-      |> Enum.join("\n")
+    lines = Enum.map_join(exception.params, "\n", &build_line/1)
 
     """
     invalid params for #{exception.module}
