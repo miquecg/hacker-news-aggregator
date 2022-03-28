@@ -51,4 +51,31 @@ defmodule HackerNewsApi.DataParserTest do
       assert to_string(uri) == "http://example.com/foo"
     end
   end
+
+  describe "parse_media_type/1" do
+    test "returns type/subtype" do
+      assert {:ok, {"application/json", nil}} = Parser.parse_media_type("application/json")
+      assert {:ok, {"application/json", nil}} = Parser.parse_media_type("application/json;")
+    end
+
+    test "returns type/subtype and charset" do
+      assert {:ok, {"application/json", "utf-8"}} =
+               Parser.parse_media_type("application/json; charset=utf-8")
+
+      assert {:ok, {"application/json", "utf-8"}} =
+               Parser.parse_media_type("application/json; charset=utf-8 ; ")
+    end
+
+    test "ignores any other params" do
+      assert {:ok, {"application/json", "utf-8"}} =
+               Parser.parse_media_type(
+                 "application/json; foo=bar ; charset=utf-8;encoding=utf-16"
+               )
+    end
+
+    test "normalizes to lowercase" do
+      assert {:ok, {"application/json", "utf-8"}} =
+               Parser.parse_media_type("application/JSON; Charset=UTF-8")
+    end
+  end
 end
