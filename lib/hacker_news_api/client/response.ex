@@ -4,7 +4,7 @@ defmodule HackerNewsApi.Client.Response do
   """
 
   alias __MODULE__
-  alias HackerNewsApi.Error
+  alias HackerNewsApi.{DataParser, Error}
 
   defstruct [:status, :headers, :raw_body, :body]
 
@@ -82,4 +82,41 @@ defmodule HackerNewsApi.Client.Response do
       error: message
     }
   end
+
+  @typep media_type :: DataParser.media_type()
+  @typep not_media_type :: DataParser.not_media_type()
+
+  @spec get_media_type(t) :: {:ok, media_type} | {:error, :missing | not_media_type}
+  def get_media_type(%Response{headers: headers}) do
+    if value = get_header(headers, "content-type") do
+      DataParser.parse_media_type(value)
+    else
+      {:error, :missing}
+    end
+  end
+
+  defp get_header(headers, lookup) do
+    lookup_size = byte_size(lookup)
+
+    Enum.find_value(headers, fn
+      {header, value} when byte_size(header) == lookup_size ->
+        if same_header?(header, lookup), do: value
+
+      {_, _} ->
+        false
+    end)
+  end
+
+  # Compare headers case insensitive.
+  defp same_header?(<<char, header::binary>>, <<char, lookup::binary>>) do
+    same_header?(header, lookup)
+  end
+
+  defp same_header?(<<char, header::binary>>, <<codepoint, lookup::binary>>)
+       when char in ?A..?Z do
+    if codepoint == char + 32, do: same_header?(header, lookup)
+  end
+
+  defp same_header?(<<>>, <<>>), do: true
+  defp same_header?(_, _), do: false
 end

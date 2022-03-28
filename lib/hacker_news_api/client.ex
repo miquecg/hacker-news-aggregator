@@ -61,10 +61,10 @@ defmodule HackerNewsApi.Client do
   defp process_with_option(_option, response), do: {:cont, response}
 
   defp match_content_type(response, media_type) do
-    case Response.get_content_type(response) do
+    case Response.get_media_type(response) do
       {:ok, {^media_type, "utf-8"}} -> :ok
       {:ok, {_, _} = value} -> media_type_error(unsupported: value)
-      {:error, :missing} -> media_type_error(:missing)
+      {:error, error} -> media_type_error(error)
     end
   end
 

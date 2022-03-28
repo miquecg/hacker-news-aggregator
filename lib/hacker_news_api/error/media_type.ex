@@ -15,6 +15,13 @@ defmodule HackerNewsApi.Error.MediaType do
   end
 
   @impl true
+  def exception(:not_media_type) do
+    %__MODULE__{
+      message: "not valid media-type found"
+    }
+  end
+
+  @impl true
   def exception(info) do
     {type_subtype, charset} = Access.fetch!(info, :unsupported)
 
