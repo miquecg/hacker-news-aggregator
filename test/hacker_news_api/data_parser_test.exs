@@ -44,6 +44,11 @@ defmodule HackerNewsApi.DataParserTest do
 
       assert {:ok, uri = %URI{}} = Parser.parse_url("http://example.com/foo", path: "/bar")
       assert to_string(uri) == "http://example.com/foo"
+
+      assert {:ok, uri = %URI{}} =
+               Parser.parse_url("http://example.com:4040", scheme: "https", path: "bar")
+
+      assert to_string(uri) == "http://example.com:4040/bar"
     end
 
     test "removes double slashes" do
