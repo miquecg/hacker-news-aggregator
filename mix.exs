@@ -33,6 +33,7 @@ defmodule HackerNews.MixProject do
       {:dialyxir, "~> 1.0", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
       {:sobelow, "~> 0.11.1", only: :dev},
+      {:bypass, "~> 2.1", only: :test},
       {:mint_web_socket, "~> 0.3.0", only: :test}
     ]
   end

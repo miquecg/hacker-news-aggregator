@@ -51,7 +51,7 @@ defmodule HackerNewsApi.Client do
 
   defp process_with_option({:decode, {media_type, decoder}}, response) do
     with :ok <- match_content_type(response, media_type),
-         {:ok, decoded} <- decoder.(response.body) do
+         {:ok, decoded} <- decoder.(response.raw_body) do
       {:cont, %{response | body: decoded}}
     else
       {:error, _} = error -> {:halt, error}
