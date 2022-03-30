@@ -7,7 +7,10 @@ defmodule HackerNewsApi.ClientTest do
 
   setup do
     bypass = Bypass.open()
-    {:ok, bypass: bypass, base_url: "http://localhost:#{bypass.port}"}
+    path = TopStories.path()
+    url = "http://localhost:#{bypass.port}/#{path}"
+
+    [bypass: bypass, resource: %TopStories{url: url}]
   end
 
   @top_stories [
@@ -24,10 +27,9 @@ defmodule HackerNewsApi.ClientTest do
       put_json_response(conn, @top_stories)
     end)
 
-    resource = TopStories.new!(context.base_url)
     opts = [option(:decode)]
 
-    assert {:ok, %Response{body: @top_stories}} = Client.request(resource, opts)
+    assert {:ok, %Response{body: @top_stories}} = Client.request(context.resource, opts)
   end
 
   test "decoder returns error", context do
@@ -35,10 +37,9 @@ defmodule HackerNewsApi.ClientTest do
       put_json_response(conn, @top_stories)
     end)
 
-    resource = TopStories.new!(context.base_url)
     opts = [option(:decode, {:error, %Jason.DecodeError{}})]
 
-    assert {:error, %Jason.DecodeError{}} = Client.request(resource, opts)
+    assert {:error, %Jason.DecodeError{}} = Client.request(context.resource, opts)
   end
 
   defp put_json_response(conn, data) do
