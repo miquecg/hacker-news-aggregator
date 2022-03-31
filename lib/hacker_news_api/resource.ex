@@ -68,6 +68,7 @@ defmodule HackerNewsApi.BaseResource do
     end
   end
 
+  # sobelow_skip ["DOS.StringToAtom"]
   defp quote_new(path_params, url) do
     quote do
       import HackerNewsApi.BaseResource,
@@ -83,6 +84,7 @@ defmodule HackerNewsApi.BaseResource do
         end
       end
 
+      # sobelow_skip ["DOS.StringToAtom"]
       defp contains?(args, path_params) do
         Enum.all?(path_params, fn <<?:, param::binary>> ->
           Keyword.has_key?(args, String.to_atom(param))
@@ -142,6 +144,7 @@ defmodule HackerNewsApi.BaseResource do
   @typep url :: String.t()
   @typep path_params :: DataParser.path_params()
 
+  # sobelow_skip ["DOS.StringToAtom"]
   @spec replace_path_params(url, path_params, keyword()) :: String.t()
   def replace_path_params(url, path_params, values) do
     String.replace(url, path_params, fn <<":", param::binary>> ->
