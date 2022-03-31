@@ -7,9 +7,11 @@ defmodule HackerNewsApi.DataParser do
   Both strings are normalized to lowercase when parsing.
   """
   @type media_type :: {type_subtype :: String.t(), charset :: nil | String.t()}
+  @type path_params :: [String.t()]
 
-  @type not_url :: :malformed_url | :missing_scheme | :missing_path | :missing_host
   @type not_media_type :: :not_media_type
+  @type not_path_param :: {param :: String.t(), offending_char :: <<_::8>>}
+  @type not_url :: :malformed_url | :missing_scheme | :missing_path | :missing_host
 
   @typep ok(t) :: {:ok, t}
   @typep error(t) :: {:error, t}
@@ -51,6 +53,52 @@ defmodule HackerNewsApi.DataParser do
 
   def parse_url(%URI{} = uri, _), do: {:ok, uri}
 
+  @spec parse_path_params(String.t()) :: ok(path_params) | error(not_path_param)
+  def parse_path_params(path) when is_binary(path) do
+    segments = String.split(path, "/", trim: true)
+
+    case parse_path_params(segments, []) do
+      params when is_list(params) -> {:ok, Enum.reverse(params)}
+      {:error, _} = error -> error
+    end
+  end
+
+  defp parse_path_params(segments, acc) do
+    pattern = :binary.compile_pattern([":"])
+
+    Enum.reduce_while(segments, acc, fn segment, acc ->
+      case match_param(segment, pattern) do
+        param when is_binary(param) -> {:cont, [param | acc]}
+        {:error, :no_match} -> {:cont, acc}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp match_param(segment, pattern) do
+    case :binary.matches(segment, pattern) do
+      [{prefix_size, _}] ->
+        suffix_size = byte_size(segment) - prefix_size - 1
+        <<_::binary-size(prefix_size), ?:, suffix::binary-size(suffix_size)>> = segment
+        parse_suffix(suffix)
+
+      [] ->
+        {:error, :no_match}
+    end
+  end
+
+  defp parse_suffix(<<h, t::binary>>)
+       when h in ?a..?z or h in ?A..?Z,
+       do: parse_suffix(t, <<?:, h>>)
+
+  defp parse_suffix(<<h, _::binary>> = suffix), do: {:error, {suffix, <<h>>}}
+
+  defp parse_suffix(<<h, t::binary>>, acc)
+       when h in ?a..?z or h in ?A..?Z or h in ?0..?9 or h == ?_,
+       do: parse_suffix(t, <<acc::binary, h>>)
+
+  defp parse_suffix(_rest, acc), do: acc
+
   @spec parse_media_type(String.t()) :: ok(media_type) | error(not_media_type)
   def parse_media_type(media_type) when is_binary(media_type) do
     parts =
@@ -60,8 +108,8 @@ defmodule HackerNewsApi.DataParser do
       |> String.split(~r{\s*;\s*}, trim: true)
 
     case parse_media_type(parts, []) do
+      media_type when is_tuple(media_type) -> {:ok, media_type}
       :error -> {:error, :not_media_type}
-      media_type -> {:ok, media_type}
     end
   end
 

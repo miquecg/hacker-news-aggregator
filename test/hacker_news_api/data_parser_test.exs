@@ -57,6 +57,30 @@ defmodule HackerNewsApi.DataParserTest do
     end
   end
 
+  describe "parse_path_params/1" do
+    test "returns a list with all params in path" do
+      assert {:ok, [":item"]} = Parser.parse_path_params("/stories/:item")
+      assert {:ok, [":collection", ":item"]} = Parser.parse_path_params("/:collection/:item")
+    end
+
+    test "stops parsing param when reaching '.'" do
+      assert {:ok, [":item"]} = Parser.parse_path_params("/stories/:item.json")
+    end
+
+    test "ignores strings not containing path delimiters" do
+      assert {:ok, []} = Parser.parse_path_params("")
+      assert {:ok, []} = Parser.parse_path_params("foo")
+    end
+
+    test "ignores double slashes" do
+      assert {:ok, [":item"]} = Parser.parse_path_params("/stories//:item")
+    end
+
+    test "returns error with offending character for invalid param" do
+      assert {:error, {"1tem", "1"}} = Parser.parse_path_params("/stories/:1tem")
+    end
+  end
+
   describe "parse_media_type/1" do
     test "returns type/subtype" do
       assert {:ok, {"application/json", nil}} = Parser.parse_media_type("application/json")
