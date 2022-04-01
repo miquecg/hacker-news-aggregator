@@ -26,6 +26,8 @@ defmodule HackerNewsApi.BaseResource do
 
   alias HackerNewsApi.{DataParser, Error}
 
+  require Error.Params
+
   @host Application.compile_env!(:hacker_news, [:api, :host])
 
   @doc false
@@ -71,8 +73,11 @@ defmodule HackerNewsApi.BaseResource do
   # sobelow_skip ["DOS.StringToAtom"]
   defp quote_new(path_params, url) do
     quote do
-      import HackerNewsApi.BaseResource,
-        only: [replace_path_params: 3, build_error: 2]
+      alias HackerNewsApi.Error
+
+      require Error.Params
+
+      import HackerNewsApi.BaseResource, only: [replace_path_params: 3]
 
       @spec new(keyword()) :: {:ok, t} | {:error, Error.Params.t()}
       def new(args) do
@@ -80,7 +85,7 @@ defmodule HackerNewsApi.BaseResource do
           url = replace_path_params(unquote(url), unquote(path_params), args)
           {:ok, struct(__MODULE__, url: url)}
         else
-          {:error, build_error(:missing_path_params, args)}
+          {:error, Error.Params.build(:missing_path_params, args)}
         end
       end
 
@@ -90,18 +95,6 @@ defmodule HackerNewsApi.BaseResource do
           Keyword.has_key?(args, String.to_atom(param))
         end)
       end
-    end
-  end
-
-  defmacro build_error(error, params) do
-    module = __CALLER__.module
-
-    quote do
-      %Error.Params{
-        module: unquote(module),
-        params: unquote(params),
-        error: unquote(error)
-      }
     end
   end
 
@@ -128,7 +121,7 @@ defmodule HackerNewsApi.BaseResource do
         ok
 
       {:error, error} ->
-        {:error, build_error(error, uri: uri, opts: opts)}
+        {:error, Error.Params.build(error, uri: uri, opts: opts)}
     end
   end
 

@@ -6,6 +6,8 @@ defmodule HackerNewsApi.Client.Response do
   alias __MODULE__
   alias HackerNewsApi.{DataParser, Error}
 
+  require Error.Params
+
   defstruct [:status, :headers, :raw_body, :body]
 
   @type header :: {name :: String.t(), value :: String.t()}
@@ -35,8 +37,7 @@ defmodule HackerNewsApi.Client.Response do
         {:ok, response}
 
       {:error, message} ->
-        error = build_error(message, params)
-        {:error, error}
+        {:error, Error.Params.build(message, params)}
     end
   end
 
@@ -73,14 +74,6 @@ defmodule HackerNewsApi.Client.Response do
 
   defp build([{:body, body} | rest], acc) do
     build(rest, Map.put(acc, :body, body))
-  end
-
-  defp build_error(message, params) do
-    %Error.Params{
-      module: __MODULE__,
-      params: params,
-      error: message
-    }
   end
 
   @typep media_type :: DataParser.media_type()

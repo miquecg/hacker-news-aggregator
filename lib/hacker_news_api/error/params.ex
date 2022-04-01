@@ -26,4 +26,19 @@ defmodule HackerNewsApi.Error.Params do
   end
 
   defp build_line({param, value}), do: "#{param} got value: #{inspect(value)}"
+
+  # It would be nice to somehow pick
+  # current function arguments instead
+  # of having to pass them through.
+  defmacro build(error, params) do
+    module = __CALLER__.module
+
+    quote do
+      %HackerNewsApi.Error.Params{
+        module: unquote(module),
+        params: unquote(params),
+        error: unquote(error)
+      }
+    end
+  end
 end
