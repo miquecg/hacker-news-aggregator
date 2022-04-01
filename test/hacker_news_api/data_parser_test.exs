@@ -8,30 +8,39 @@ defmodule HackerNewsApi.DataParserTest do
       assert {:ok, uri = %URI{}} = Parser.parse_url("example.com", [])
       assert to_string(uri) == "https://example.com"
 
+      assert {:ok, uri = %URI{}} = Parser.parse_url("localhost:4040", [])
+      assert to_string(uri) == "https://localhost:4040"
+
       assert {:ok, uri = %URI{}} = Parser.parse_url("example.com", path: "/foo")
       assert to_string(uri) == "https://example.com/foo"
     end
 
     test "returns URL with given scheme" do
+      assert {:ok, uri = %URI{}} = Parser.parse_url("example.com", scheme: "http")
+      assert to_string(uri) == "http://example.com"
+
       assert {:ok, uri = %URI{}} = Parser.parse_url("example.com/foo", scheme: "http")
       assert to_string(uri) == "http://example.com/foo"
 
-      assert {:ok, uri = %URI{}} = Parser.parse_url("example.com", scheme: "http")
-      assert to_string(uri) == "http://example.com"
+      assert {:ok, uri = %URI{}} = Parser.parse_url("localhost:4040", scheme: "http")
+      assert to_string(uri) == "http://localhost:4040"
     end
 
     test "returns URL with given path" do
+      assert {:ok, uri = %URI{}} = Parser.parse_url("http://example.com", path: "/")
+      assert to_string(uri) == "http://example.com/"
+
       assert {:ok, uri = %URI{}} = Parser.parse_url("http://example.com", path: "/foo")
       assert to_string(uri) == "http://example.com/foo"
+
+      assert {:ok, uri = %URI{}} = Parser.parse_url("localhost:4040", path: "/other")
+      assert to_string(uri) == "https://localhost:4040/other"
 
       assert {:ok, uri = %URI{}} = Parser.parse_url("http://example.com", path: "bar")
       assert to_string(uri) == "http://example.com/bar"
 
-      assert {:ok, uri = %URI{}} = Parser.parse_url("http://example.com:4040", path: "baz")
-      assert to_string(uri) == "http://example.com:4040/baz"
-
-      assert {:ok, uri = %URI{}} = Parser.parse_url("http://localhost:4040", path: "/")
-      assert to_string(uri) == "http://localhost:4040/"
+      assert {:ok, uri = %URI{}} = Parser.parse_url("localhost:4040", path: "baz")
+      assert to_string(uri) == "https://localhost:4040/baz"
     end
 
     test "returns URL with given scheme and path" do

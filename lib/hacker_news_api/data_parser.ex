@@ -28,7 +28,8 @@ defmodule HackerNewsApi.DataParser do
 
   @defaults [scheme: "https"]
 
-  def parse_url(%URI{scheme: nil} = uri, params) do
+  def parse_url(%URI{scheme: scheme, host: host} = uri, params)
+      when is_nil(scheme) or is_nil(host) do
     scheme = params[:scheme] || @defaults[:scheme]
     parse_url("#{scheme}://#{to_string(uri)}", params)
   end
