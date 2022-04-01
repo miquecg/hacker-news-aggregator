@@ -11,13 +11,13 @@ defmodule HackerNewsApi.DataParser do
 
   @type not_media_type :: :not_media_type
   @type not_path_param :: {param :: String.t(), offending_char :: <<_::8>>}
-  @type not_url :: :malformed_url | :missing_scheme | :missing_path | :missing_host
+  @type not_url :: :malformed_url | :missing_host
 
   @typep ok(t) :: {:ok, t}
   @typep error(t) :: {:error, t}
 
-  @spec parse_url(URI.t() | String.t(), Access.t()) :: ok(URI.t()) | error(not_url)
-  def parse_url(uri, params)
+  @spec parse_url(String.t() | URI.t(), Access.t()) :: ok(URI.t()) | error(not_url)
+  def parse_url(uri, params \\ [])
 
   def parse_url(uri, params) when is_binary(uri) do
     case URI.new(uri) do
@@ -26,30 +26,28 @@ defmodule HackerNewsApi.DataParser do
     end
   end
 
+  @defaults [scheme: "https"]
+
   def parse_url(%URI{scheme: nil} = uri, params) do
-    case params[:scheme] do
-      nil -> {:error, :missing_scheme}
-      scheme -> parse_url("#{scheme}://#{to_string(uri)}", params)
-    end
+    scheme = params[:scheme] || @defaults[:scheme]
+    parse_url("#{scheme}://#{to_string(uri)}", params)
+  end
+
+  def parse_url(%URI{host: ""}, _), do: {:error, :missing_host}
+
+  def parse_url(%URI{path: nil} = uri, params) do
+    uri =
+      case params[:path] do
+        nil -> uri
+        path -> URI.merge(uri, path)
+      end
+
+    {:ok, uri}
   end
 
   def parse_url(%URI{path: "/"} = uri, params) do
     parse_url(%{uri | path: nil}, params)
   end
-
-  def parse_url(%URI{path: nil} = uri, params) do
-    case params[:path] do
-      nil ->
-        {:error, :missing_path}
-
-      path ->
-        uri = URI.merge(uri, path)
-        parse_url(uri, params)
-    end
-  end
-
-  def parse_url(%URI{host: nil}, _), do: {:error, :missing_host}
-  def parse_url(%URI{host: ""}, _), do: {:error, :missing_host}
 
   def parse_url(%URI{} = uri, _), do: {:ok, uri}
 

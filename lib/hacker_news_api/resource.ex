@@ -105,47 +105,45 @@ defmodule HackerNewsApi.BaseResource do
     end
   end
 
-  @typep host :: String.t()
   @type option :: {:scheme, String.t()} | {:path, String.t()}
   @type opts :: [option]
 
-  @typep ok :: {:ok, URI.t()}
+  @typep ok(t) :: {:ok, t}
   @typep error :: {:error, Error.Params.t()}
-
-  @defaults [scheme: "https"]
 
   @doc """
   Creates a `URI` struct.
 
+  Accepts a list of `t:option/0`.
+
+  Options do not override existing URI parts.
+
   Defaults provided:
   - scheme: "https"
   """
-  @spec build_url(host, opts) :: ok | error
-  def build_url(host, opts \\ []) do
-    opts = Keyword.merge(@defaults, opts)
-
-    case DataParser.parse_url(host, opts) do
+  @spec build_url(String.t(), opts) :: ok(URI.t()) | error
+  def build_url(uri, opts \\ []) do
+    case DataParser.parse_url(uri, opts) do
       {:ok, _url} = ok ->
         ok
 
       {:error, error} ->
-        {:error, build_error(error, host: host, opts: opts)}
+        {:error, build_error(error, uri: uri, opts: opts)}
     end
   end
 
-  @spec build_url!(host, opts) :: URI.t() | no_return()
-  def build_url!(host, opts \\ []) do
-    case build_url(host, opts) do
+  @spec build_url!(String.t(), opts) :: URI.t() | no_return()
+  def build_url!(uri, opts \\ []) do
+    case build_url(uri, opts) do
       {:ok, url} -> url
       {:error, error} -> raise error
     end
   end
 
-  @typep url :: String.t()
   @typep path_params :: DataParser.path_params()
 
   # sobelow_skip ["DOS.StringToAtom"]
-  @spec replace_path_params(url, path_params, keyword()) :: String.t()
+  @spec replace_path_params(String.t(), path_params, keyword()) :: String.t()
   def replace_path_params(url, path_params, values) do
     String.replace(url, path_params, fn <<":", param::binary>> ->
       key = String.to_atom(param)
