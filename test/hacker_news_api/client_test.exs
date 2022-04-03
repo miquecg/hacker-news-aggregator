@@ -85,6 +85,12 @@ defmodule HackerNewsApi.ClientTest do
     assert {:ok, %Response{body: @top_stories}} = Client.request(context.resource, @options)
   end
 
+  test "Hacker News API is down", context do
+    Bypass.down(context.bypass)
+
+    assert {:error, _} = Client.request(context.resource, @options)
+  end
+
   defp put_json_response(conn, data) do
     body = Jason.encode_to_iodata!(data)
 
