@@ -19,18 +19,10 @@ defmodule HackerNewsApi.Client.Response do
           body: term()
         }
 
-  @typep ok :: {:ok, t}
-  @typep error :: {:error, Error.Params.t()}
+  @typep ok(t) :: {:ok, t}
+  @typep error(t) :: {:error, t}
 
-  @spec new!(keyword()) :: t | no_return()
-  def new!(params) do
-    case new(params) do
-      {:ok, response} -> response
-      {:error, error} -> raise error
-    end
-  end
-
-  @spec new(keyword()) :: ok | error
+  @spec new(keyword()) :: ok(t) | error(Error.Params.t())
   def new(params) do
     case build(params, %{}) do
       %{} = response ->
@@ -38,6 +30,14 @@ defmodule HackerNewsApi.Client.Response do
 
       {:error, message} ->
         {:error, Error.Params.build(message, params)}
+    end
+  end
+
+  @spec new!(keyword()) :: t | no_return()
+  def new!(params) do
+    case new(params) do
+      {:ok, response} -> response
+      {:error, error} -> raise error
     end
   end
 
@@ -79,7 +79,7 @@ defmodule HackerNewsApi.Client.Response do
   @typep media_type :: DataParser.media_type()
   @typep not_media_type :: DataParser.not_media_type()
 
-  @spec get_media_type(t) :: {:ok, media_type} | {:error, :missing | not_media_type}
+  @spec get_media_type(t) :: ok(media_type) | error(:missing | not_media_type)
   def get_media_type(%Response{headers: headers}) do
     if value = get_header(headers, "content-type") do
       DataParser.parse_media_type(value)

@@ -102,7 +102,7 @@ defmodule HackerNewsApi.BaseResource do
   @type opts :: [option]
 
   @typep ok(t) :: {:ok, t}
-  @typep error :: {:error, Error.Params.t()}
+  @typep error(t) :: {:error, t}
 
   @doc """
   Creates a `URI` struct.
@@ -114,7 +114,7 @@ defmodule HackerNewsApi.BaseResource do
   Defaults provided:
   - scheme: "https"
   """
-  @spec build_url(String.t(), opts) :: ok(URI.t()) | error
+  @spec build_url(String.t(), opts) :: ok(URI.t()) | error(Error.Params.t())
   def build_url(uri, opts \\ []) do
     case DataParser.parse_url(uri, opts) do
       {:ok, _url} = ok ->
