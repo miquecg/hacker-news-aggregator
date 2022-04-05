@@ -11,6 +11,7 @@ defmodule HackerNews.Application do
     children = [
       {Repo, name: :stories},
       {Finch, name: :finch},
+      {Task.Supervisor, name: HackerNewsApi.TaskSupervisor},
       {
         Plug.Cowboy,
         scheme: :http,

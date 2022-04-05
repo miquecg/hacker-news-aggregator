@@ -7,7 +7,7 @@ defmodule HackerNewsWeb.Router do
   plug :dispatch
 
   get "/stories" do
-    stories = HackerNews.get_top_stories()
+    stories = HackerNews.get_stories()
 
     conn
     |> render("collection.json", stories)
