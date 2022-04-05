@@ -3,8 +3,10 @@ defmodule HackerNews do
   Service layer to encapsulate business logic.
   """
 
+  @dialyzer {:no_contracts, reducer: 2}
+
   alias HackerNews.Repo
-  alias HackerNewsApi.{Client, Client.Response, Resource}
+  alias HackerNewsApi.{Client, Client.Response, Error.ResourceError, Resource}
 
   def get_stories, do: Repo.get_all(:stories)
 
@@ -30,7 +32,7 @@ defmodule HackerNews do
 
   @typep ids :: [pos_integer()]
   @typep story :: map()
-  @typep error :: {Resource.Story.t(), any()}
+  @typep error :: Exception.t()
   @typep fetch_results :: %{stories: [story], errors: [error]}
 
   @spec request_many(ids, opts) :: fetch_results
@@ -68,30 +70,38 @@ defmodule HackerNews do
     )
     |> Stream.map(fn
       {:ok, result} -> process_result(result)
-      {:exit, :timeout} -> {:error, :timeout}
+      {:exit, :timeout} -> {:error, %ResourceError{reason: :timeout}}
     end)
   end
 
   defp process_result({:ok, %Response{status: 200} = response}), do: {:ok, response.body}
 
-  defp process_result({:ok, %Response{} = response}), do: {:error, response}
+  defp process_result({:ok, %Response{} = response}) do
+    {:error, %ResourceError{reason: :invalid_response, response: response}}
+  end
 
   defp process_result({:error, _} = error), do: error
 
   defp zip_with(results, resources, acc) do
     results
     |> Stream.zip_with(resources, fn
-      {:ok, %{"id" => _} = story}, _ -> story
-      {:error, error}, resource -> {resource, error}
+      {:ok, %{"id" => _} = story}, _ ->
+        story
+
+      {:error, %ResourceError{} = error}, resource ->
+        %{error | resource: resource}
+
+      {:error, error}, resource ->
+        %ResourceError{resource: resource, reason: error}
     end)
     |> Enum.reduce(acc, &reducer/2)
   end
 
+  @spec reducer(error, fetch_results) :: fetch_results
+  defp reducer(error, acc) when is_exception(error), do: put(acc, :errors, error)
+
   @spec reducer(story, fetch_results) :: fetch_results
   defp reducer(%{} = story, acc), do: put(acc, :stories, story)
-
-  @spec reducer(error, fetch_results) :: fetch_results
-  defp reducer({%Resource.Story{}, _} = error, acc), do: put(acc, :errors, error)
 
   defp put(acc, key, elem) do
     {nil, acc} = get_and_update_in(acc, [key], &{nil, [elem | &1]})

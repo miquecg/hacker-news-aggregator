@@ -17,9 +17,7 @@
       strict: false,
       parse_timeout: 5000,
       color: true,
-      checks: [
-        {Credo.Check.Consistency.ExceptionNames, false}
-      ]
+      checks: []
     }
   ]
 }

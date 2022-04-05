@@ -3,7 +3,8 @@ defmodule HackerNewsApi.Client do
   Behaviour that HTTP clients must adhere to.
   """
 
-  alias HackerNewsApi.{Client.Response, Error, Resource}
+  alias HackerNewsApi.{Client.Response, Resource}
+  alias HackerNewsApi.Error.{MediaTypeError, ResourceError}
 
   @typedoc """
   Lowercase type/subtype (e.g. application/json).
@@ -83,7 +84,7 @@ defmodule HackerNewsApi.Client do
   end
 
   defp error_too_many_requests(resource) do
-    {:error, %Error.TooManyRequests{resource: resource}}
+    {:error, %ResourceError{resource: resource, reason: :too_many_requests}}
   end
 
   @spec process_response(response, opts) :: ok(response) | error(exception)
@@ -113,5 +114,5 @@ defmodule HackerNewsApi.Client do
     end
   end
 
-  defp error_media_type(info), do: {:error, Error.MediaType.exception(info)}
+  defp error_media_type(info), do: {:error, MediaTypeError.exception(info)}
 end

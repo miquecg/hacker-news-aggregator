@@ -4,9 +4,9 @@ defmodule HackerNewsApi.Client.Response do
   """
 
   alias __MODULE__
-  alias HackerNewsApi.{DataParser, Error}
+  alias HackerNewsApi.{DataParser, Error.ParamsError}
 
-  require Error.Params
+  require ParamsError
 
   defstruct [:status, :headers, :raw_body, :body]
 
@@ -22,14 +22,14 @@ defmodule HackerNewsApi.Client.Response do
   @typep ok(t) :: {:ok, t}
   @typep error(t) :: {:error, t}
 
-  @spec new(keyword()) :: ok(t) | error(Error.Params.t())
+  @spec new(keyword()) :: ok(t) | error(ParamsError.t())
   def new(params) do
     case build(params, %{}) do
       %{} = response ->
         {:ok, response}
 
       {:error, message} ->
-        {:error, Error.Params.build(message, params)}
+        {:error, ParamsError.build(message, params)}
     end
   end
 

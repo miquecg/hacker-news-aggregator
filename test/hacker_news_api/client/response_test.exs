@@ -1,11 +1,11 @@
 defmodule HackerNewsApi.Client.ResponseTest do
   use ExUnit.Case, async: true
 
-  alias HackerNewsApi.{Client.Response, Error}
+  alias HackerNewsApi.{Client.Response, Error.ParamsError}
 
   describe "new/1" do
     test "with empty params returns error" do
-      assert {:error, error = %Error.Params{}} = Response.new([])
+      assert {:error, error = %ParamsError{}} = Response.new([])
       assert %{module: Response, params: [], error: message} = error
       assert message == "missing HTTP status code"
     end

@@ -24,9 +24,9 @@ defmodule HackerNewsApi.BaseResource do
   with `Kernel.use/2`.
   """
 
-  alias HackerNewsApi.{DataParser, Error}
+  alias HackerNewsApi.{DataParser, Error.ParamsError}
 
-  require Error.Params
+  require ParamsError
 
   @host Application.compile_env!(:hacker_news, [:api, :host])
 
@@ -73,19 +73,19 @@ defmodule HackerNewsApi.BaseResource do
   # sobelow_skip ["DOS.StringToAtom"]
   defp quote_new(path_params, url) do
     quote do
-      alias HackerNewsApi.Error
+      alias HackerNewsApi.Error.ParamsError
 
-      require Error.Params
+      require ParamsError
 
       import HackerNewsApi.BaseResource, only: [replace_path_params: 3]
 
-      @spec new(keyword()) :: {:ok, t} | {:error, Error.Params.t()}
+      @spec new(keyword()) :: {:ok, t} | {:error, ParamsError.t()}
       def new(args) do
         if contains?(args, unquote(path_params)) do
           url = replace_path_params(unquote(url), unquote(path_params), args)
           {:ok, struct(__MODULE__, url: url)}
         else
-          {:error, Error.Params.build(:missing_path_params, args)}
+          {:error, ParamsError.build(:missing_path_params, args)}
         end
       end
 
@@ -114,14 +114,14 @@ defmodule HackerNewsApi.BaseResource do
   Defaults provided:
   - scheme: "https"
   """
-  @spec build_url(String.t(), opts) :: ok(URI.t()) | error(Error.Params.t())
+  @spec build_url(String.t(), opts) :: ok(URI.t()) | error(ParamsError.t())
   def build_url(uri, opts \\ []) do
     case DataParser.parse_url(uri, opts) do
       {:ok, _url} = ok ->
         ok
 
       {:error, error} ->
-        {:error, Error.Params.build(error, uri: uri, opts: opts)}
+        {:error, ParamsError.build(error, uri: uri, opts: opts)}
     end
   end
 

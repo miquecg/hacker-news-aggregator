@@ -3,7 +3,8 @@ defmodule HackerNewsApi.ClientTest do
 
   import Plug.Conn
 
-  alias HackerNewsApi.{Client, Client.Response, Error, Resource.TopStories}
+  alias HackerNewsApi.{Client, Client.Response, Resource.TopStories}
+  alias HackerNewsApi.Error.ResourceError
 
   setup do
     bypass = Bypass.open()
@@ -60,7 +61,8 @@ defmodule HackerNewsApi.ClientTest do
 
     opts = [{:retries, {0, 5, 10}}]
 
-    assert {:error, %Error.TooManyRequests{}} = Client.request(context.resource, opts)
+    assert {:error, %ResourceError{reason: :too_many_requests}} =
+             Client.request(context.resource, opts)
   end
 
   test "retry after one response status 429 (Too Many Requests)", context do

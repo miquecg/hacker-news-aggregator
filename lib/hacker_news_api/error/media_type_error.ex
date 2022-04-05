@@ -1,4 +1,4 @@
-defmodule HackerNewsApi.Error.MediaType do
+defmodule HackerNewsApi.Error.MediaTypeError do
   @moduledoc """
   Exception for media-type errors.
   """

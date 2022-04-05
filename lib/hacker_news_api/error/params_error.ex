@@ -1,4 +1,4 @@
-defmodule HackerNewsApi.Error.Params do
+defmodule HackerNewsApi.Error.ParamsError do
   @moduledoc """
   Exception for invalid params.
   """
@@ -34,7 +34,7 @@ defmodule HackerNewsApi.Error.Params do
     module = __CALLER__.module
 
     quote do
-      %HackerNewsApi.Error.Params{
+      %HackerNewsApi.Error.ParamsError{
         module: unquote(module),
         params: unquote(params),
         error: unquote(error)
