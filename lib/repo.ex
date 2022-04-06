@@ -1,6 +1,6 @@
 defmodule HackerNews.Repo do
   @moduledoc """
-  Access to data storage for Hacker News API.
+  Access to the data storage for Hacker News stories.
   """
 
   use Agent
@@ -29,5 +29,9 @@ defmodule HackerNews.Repo do
     Agent.start_link(fn -> @top_stories end, opts)
   end
 
-  def get_all(agent), do: Agent.get(agent, & &1)
+  def all(agent), do: Agent.get(agent, & &1)
+
+  def insert_all(_agent, []), do: :ok
+
+  def insert_all(_agent, [_ | _]), do: :ok
 end

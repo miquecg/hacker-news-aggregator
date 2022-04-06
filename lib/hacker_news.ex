@@ -8,32 +8,38 @@ defmodule HackerNews do
   alias HackerNews.Repo
   alias HackerNewsApi.{Client, Client.Response, Error.ResourceError, Resource}
 
-  def get_stories, do: Repo.get_all(:stories)
+  def get_stories, do: Repo.all(:stories)
 
   @type option ::
           {:max_items, pos_integer()}
           | {:chunk_size, pos_integer()}
   @type opts :: [option]
 
-  @defaults [max_items: 50, chunk_size: 10]
+  @type story :: map()
+  @type error :: ResourceError.t()
+  @type fetch_results :: %{stories: [story], errors: [error]}
 
+  @defaults [max_items: 50, chunk_size: 10]
   @client_opts [{:decode, {"application/json", &Jason.decode/1}}]
 
-  @spec update_stories(opts) :: :ok
-  def update_stories(opts) do
+  @spec fetch_top(opts) :: fetch_results
+  def fetch_top(opts \\ []) do
     opts = Keyword.merge(@defaults, opts)
     {:ok, resource} = Resource.TopStories.new()
 
-    with {:ok, %Response{status: 200, body: ids}} <- Client.request(resource, @client_opts),
-         %{stories: _, errors: _} <- request_many(ids, opts) do
-      :ok
+    case Client.request(resource, @client_opts) do
+      {:ok, %Response{status: 200, body: ids}} ->
+        request_many(ids, opts)
+
+      {:error, error} ->
+        %{stories: [], errors: [error]}
     end
   end
 
+  @spec store([story]) :: :ok
+  def store(stories), do: Repo.insert_all(:stories, stories)
+
   @typep ids :: [pos_integer()]
-  @typep story :: map()
-  @typep error :: ResourceError.t()
-  @typep fetch_results :: %{stories: [story], errors: [error]}
 
   @spec request_many(ids, opts) :: fetch_results
   defp request_many(ids, opts) when is_list(ids) do
