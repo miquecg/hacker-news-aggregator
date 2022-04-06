@@ -32,7 +32,7 @@ defmodule HackerNews do
 
   @typep ids :: [pos_integer()]
   @typep story :: map()
-  @typep error :: Exception.t()
+  @typep error :: ResourceError.t()
   @typep fetch_results :: %{stories: [story], errors: [error]}
 
   @spec request_many(ids, opts) :: fetch_results
@@ -70,15 +70,13 @@ defmodule HackerNews do
     )
     |> Stream.map(fn
       {:ok, result} -> process_result(result)
-      {:exit, :timeout} -> {:error, %ResourceError{reason: :timeout}}
+      {:exit, :timeout} -> {:error, :timeout}
     end)
   end
 
   defp process_result({:ok, %Response{status: 200} = response}), do: {:ok, response.body}
 
-  defp process_result({:ok, %Response{} = response}) do
-    {:error, %ResourceError{reason: :invalid_response, response: response}}
-  end
+  defp process_result({:ok, %Response{} = response}), do: {:error, response}
 
   defp process_result({:error, _} = error), do: error
 
@@ -88,17 +86,29 @@ defmodule HackerNews do
       {:ok, %{"id" => _} = story}, _ ->
         story
 
-      {:error, %ResourceError{} = error}, resource ->
-        %{error | resource: resource}
+      {:error, %Response{} = response}, resource ->
+        build_error(:invalid_response, resource, response)
 
-      {:error, error}, resource ->
-        %ResourceError{resource: resource, reason: error}
+      {:error, reason}, resource ->
+        build_error(reason, resource)
     end)
     |> Enum.reduce(acc, &reducer/2)
   end
 
+  defp build_error(reason, resource, response \\ nil)
+
+  defp build_error(%ResourceError{} = error, _, _), do: error
+
+  defp build_error(reason, resource, response) when is_atom(reason) do
+    %ResourceError{
+      reason: reason,
+      resource: resource,
+      response: response
+    }
+  end
+
   @spec reducer(error, fetch_results) :: fetch_results
-  defp reducer(error, acc) when is_exception(error), do: put(acc, :errors, error)
+  defp reducer(%ResourceError{} = error, acc), do: put(acc, :errors, error)
 
   @spec reducer(story, fetch_results) :: fetch_results
   defp reducer(%{} = story, acc), do: put(acc, :stories, story)

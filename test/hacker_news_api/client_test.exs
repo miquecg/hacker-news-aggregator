@@ -51,7 +51,8 @@ defmodule HackerNewsApi.ClientTest do
     decoder = fn _ -> {:error, %Jason.DecodeError{}} end
     opts = [{:decode, {"application/json", decoder}}]
 
-    assert {:error, %Jason.DecodeError{}} = Client.request(context.resource, opts)
+    assert {:error, %ResourceError{} = error} = Client.request(context.resource, opts)
+    assert %Jason.DecodeError{} = error.reason
   end
 
   test "do not retry after one response status 429 (Too Many Requests)", context do

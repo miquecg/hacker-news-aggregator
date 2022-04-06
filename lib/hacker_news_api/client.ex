@@ -22,14 +22,14 @@ defmodule HackerNewsApi.Client do
           | {:retries, {max_retries, min_delay_ms, max_delay_ms}}
   @type opts :: [option]
 
-  @typep exception :: Exception.t()
-
   @typep resource :: Resource.t()
   @typep method :: Resource.method()
   @typep url :: Resource.url()
   @typep headers :: Resource.headers()
 
   @typep response :: Response.t()
+
+  @typep exception :: ResourceError.t()
 
   @typep ok(t) :: {:ok, t}
   @typep error(t) :: {:error, t}
@@ -53,7 +53,7 @@ defmodule HackerNewsApi.Client do
 
     case adapter.do_request(method, url, headers) do
       {:ok, %{status: 429}} -> retry(adapter, resource, opts, retries)
-      {:ok, response} -> process_response(response, opts)
+      {:ok, response} -> process_response(resource, response, opts)
       {:error, _} = error -> error
     end
   end
@@ -87,11 +87,14 @@ defmodule HackerNewsApi.Client do
     {:error, %ResourceError{resource: resource, reason: :too_many_requests}}
   end
 
-  @spec process_response(response, opts) :: ok(response) | error(exception)
-  defp process_response(response, opts) do
+  @spec process_response(resource, response, opts) :: ok(response) | error(exception)
+  defp process_response(resource, response, opts) do
     case Enum.reduce_while(opts, response, &process_with_option/2) do
-      %{} = response -> {:ok, response}
-      {:error, _} = error -> error
+      %{} = response ->
+        {:ok, response}
+
+      {:error, reason} ->
+        {:error, %ResourceError{reason: reason, resource: resource, response: response}}
     end
   end
 

@@ -1,8 +1,7 @@
 defmodule HackerNewsApi.ErrorTest do
   use ExUnit.Case, async: true
 
-  alias HackerNewsApi.{Error, Resource.Story}
-  alias Error.{MediaTypeError, ParamsError}
+  alias HackerNewsApi.{Error.MediaTypeError, Error.ParamsError}
 
   require ParamsError
 
