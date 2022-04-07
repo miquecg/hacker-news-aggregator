@@ -26,7 +26,7 @@ defmodule HackerNews.MixProject do
 
   defp deps do
     [
-      {:finch, "~> 0.10.2"},
+      {:finch, "~> 0.11.0"},
       {:jason, "~> 1.3"},
       {:plug_cowboy, "~> 2.5"},
       {:credo, "~> 1.6", only: :dev, runtime: false},
