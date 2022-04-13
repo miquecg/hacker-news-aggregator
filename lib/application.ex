@@ -3,13 +3,14 @@ defmodule HackerNews.Application do
 
   use Application
 
-  alias HackerNews.Repo
+  alias HackerNews.RepoSupervisor
   alias HackerNewsWeb.{Router, WebsocketHandler}
 
   @impl true
   def start(_type, _args) do
     children = [
-      {Repo, name: :stories},
+      {Registry, keys: :duplicate, name: Registry.Tables},
+      RepoSupervisor,
       {Finch, name: :finch},
       {Task.Supervisor, name: HackerNewsApi.TaskSupervisor},
       {

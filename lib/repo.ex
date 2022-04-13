@@ -1,37 +1,33 @@
 defmodule HackerNews.Repo do
   @moduledoc """
-  Access to the data storage for Hacker News stories.
+  Access to application data storage.
   """
 
-  use Agent
+  alias HackerNews.Repo.TableOwner
 
-  @top_stories [
-    %{
-      by: "dhouston",
-      descendants: 71,
-      id: 8863,
-      kids: [
-        8952,
-        9224,
-        8917,
-        8884,
-        8887
-      ],
-      score: 111,
-      time: 1_175_714_200,
-      title: "My YC app: Dropbox - Throw away your USB drive",
-      type: "story",
-      url: "http://www.getdropbox.com/u/2/screencast.html"
-    }
-  ]
-
-  def start_link(opts) do
-    Agent.start_link(fn -> @top_stories end, opts)
+  @spec all :: [map()]
+  def all do
+    case TableOwner.get_tables() do
+      {:ok, %{pages: pages}} -> select_all(pages)
+      {:error, :no_tables} -> []
+    end
   end
 
-  def all(agent), do: Agent.get(agent, & &1)
+  @spec all(pid()) :: [map()]
+  def all(repo) when is_pid(repo) do
+    case TableOwner.get_tables(repo) do
+      {:ok, %{pages: pages}} -> select_all(pages)
+      {:error, :no_tables} -> []
+    end
+  end
 
-  def insert_all(_agent, []), do: :ok
+  defp select_all(table), do: :ets.select(table, [{{:_, :"$1"}, [], [:"$1"]}])
 
-  def insert_all(_agent, [_ | _]), do: :ok
+  @spec save([map()]) :: {:ok, pid()}
+  def save(stories) do
+    tables = TableOwner.create_tables(stories)
+    TableOwner.activate(tables)
+  end
+
+  defdelegate stop(pid), to: TableOwner
 end
