@@ -1,17 +1,28 @@
 defmodule HackerNewsWeb.RouterTest do
   use HackerNews.ConnCase, async: true
 
+  setup context do
+    if context[:with_repo] do
+      {:ok, pid} = Repo.save(stories())
+      on_exit(fn -> GenServer.stop(pid) end)
+      [repo: pid]
+    else
+      :ok
+    end
+  end
+
+  @tag :with_repo
   test "get /stories returns json" do
     conn = conn(:get, "/stories")
 
     conn = Router.call(conn, @opts)
     stories = json_response(conn, 200)
 
-    assert stories["items_number"] == 1
+    assert stories["items_number"] == 27
     assert stories["more"] == nil
 
-    [story] = stories["items"]
-    assert story["id"] == 8863
+    [story | _] = stories["items"]
+    assert story["id"] == 31_003_071
   end
 
   test "route not found" do

@@ -8,14 +8,25 @@ defmodule HackerNews.ConnCase do
   alias Plug.Conn
 
   using do
+    fixture = Path.expand("stories.json", __DIR__)
+
+    json_data =
+      fixture
+      |> File.read!()
+      |> Jason.decode!()
+
     quote do
       import HackerNews.ConnCase
       import Plug.Conn
       import Plug.Test
 
+      alias HackerNews.Repo
       alias HackerNewsWeb.Router
 
       @opts Router.init([])
+
+      @external_resource unquote(fixture)
+      def stories, do: unquote(Macro.escape(json_data))
     end
   end
 
