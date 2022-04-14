@@ -8,7 +8,15 @@ defmodule HackerNews do
   alias HackerNews.Repo
   alias HackerNewsApi.{Client, Client.Response, Error.ResourceError, Resource}
 
-  def get_stories, do: Repo.all([])
+  def get_stories, do: get(limit: 10)
+  def get_stories(cursor), do: get(continue: cursor)
+
+  defp get(opts) do
+    case Repo.all(opts) do
+      [_ | _] = stories -> %{stories: stories}
+      {stories, next} -> %{stories: stories, cursor: next}
+    end
+  end
 
   @type option ::
           {:max_items, pos_integer()}

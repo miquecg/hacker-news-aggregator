@@ -16,12 +16,18 @@ defmodule HackerNewsWeb.RouterTest do
     conn = conn(:get, "/stories")
 
     conn = Router.call(conn, @opts)
-    stories = json_response(conn, 200)
+    response = json_response(conn, 200)
 
-    assert stories["items_number"] == 27
-    assert stories["more"] == nil
+    assert %{
+             "items" => [story | _],
+             "total" => 10,
+             "meta" => %{
+               "page" => 1,
+               "next" => _,
+               "prev" => nil
+             }
+           } = response
 
-    [story | _] = stories["items"]
     assert story["id"] == 31_003_071
   end
 
