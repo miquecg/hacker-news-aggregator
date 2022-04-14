@@ -39,6 +39,7 @@ defmodule HackerNews.Repo.TableOwner do
     return = {:ok, pid} = DynamicSupervisor.start_child(RepoSupervisor, __MODULE__)
     :ets.give_away(tables.pages, pid, @tab_pages)
     :ets.give_away(tables.stories, pid, @tab_stories)
+    :ok = GenServer.call(pid, :register)
     return
   end
 
@@ -104,25 +105,26 @@ defmodule HackerNews.Repo.TableOwner do
   end
 
   @impl true
-  def handle_info({:"ETS-TRANSFER", ref, _from, @tab_pages}, state) do
-    no_reply(%{state | pages: ref})
+  def handle_call(:register, _from, state) when state.active? do
+    {:reply, {:error, :already_active}, state}
   end
 
   @impl true
-  def handle_info({:"ETS-TRANSFER", ref, _from, @tab_stories}, state) do
-    no_reply(%{state | stories: ref})
-  end
-
-  defp no_reply(%{pages: nil} = state), do: {:noreply, state}
-  defp no_reply(%{stories: nil} = state), do: {:noreply, state}
-  defp no_reply(state), do: {:noreply, state, {:continue, :register}}
-
-  @impl true
-  def handle_continue(:register, %{active?: false} = state) do
+  def handle_call(:register, _from, state) when not state.active? do
     key = __MODULE__
     weight = state.weight
     tables = Map.take(state, [:pages, :stories])
     {:ok, _} = Registry.register(Registry.Tables, key, {weight, tables})
-    {:noreply, %{state | active?: true}}
+    {:reply, :ok, %{state | active?: true}}
+  end
+
+  @impl true
+  def handle_info({:"ETS-TRANSFER", ref, _from, @tab_pages}, %{pages: nil} = state) do
+    {:noreply, %{state | pages: ref}}
+  end
+
+  @impl true
+  def handle_info({:"ETS-TRANSFER", ref, _from, @tab_stories}, %{stories: nil} = state) do
+    {:noreply, %{state | stories: ref}}
   end
 end
