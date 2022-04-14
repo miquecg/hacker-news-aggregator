@@ -6,6 +6,8 @@ config :hacker_news, :api,
   adapter: FinchAdapter,
   host: "hacker-news.firebaseio.com"
 
+config :hacker_news, :web,
+  secret_key_base: "k1W7Ot6HLAxKsbVOXCc/wnSsRv8Wz0JGRRpraFc058SP1GFs0n3SYdqGTWyyTSLx"
 
 config :logger,
   compile_time_purge_matching: [

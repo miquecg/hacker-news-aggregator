@@ -11,9 +11,22 @@ defmodule HackerNewsWeb do
 
       use Plug.Router, init_mode: @plug_init_mode
 
-      defp render(conn, template, data) do
+      @impl true
+      def init([]) do
+        config = Application.fetch_env!(:hacker_news, :web)
+        secret = Keyword.fetch!(config, :secret_key_base)
+        [secret: secret]
+      end
+
+      @impl true
+      def call(conn, opts) do
+        conn = %{conn | secret_key_base: opts[:secret]}
+        super(conn, opts)
+      end
+
+      defp render(conn, template) do
         [template, format] = :binary.split(template, ".")
-        body = StoryView.render(template, format, data)
+        body = StoryView.render(template, format, conn.assigns)
 
         conn
         |> resp(conn.status || 200, body)
