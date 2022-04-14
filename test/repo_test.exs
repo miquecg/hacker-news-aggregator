@@ -44,21 +44,17 @@ defmodule HackerNews.RepoTest do
       assert length(stories) == 5
       assert [%{"id" => 31_021_652} | _] = stories
 
-      {stories, continue} = Repo.all(context.repo, continue: continue)
+      stories = Repo.all(context.repo, continue: continue)
 
       assert length(stories) == 3
       assert [%{"id" => 31_015_813} | _] = stories
-
-      [] = Repo.all(context.repo, continue: continue)
     end
 
     test "returns a chunk as big as the table", context do
-      {stories, continue} = Repo.all(context.repo, limit: 20)
+      stories = Repo.all(context.repo, limit: 20)
 
       assert length(stories) == 13
       assert [%{"id" => 31_024_767} | _] = stories
-
-      [] = Repo.all(context.repo, continue: continue)
     end
 
     test "does not mix options", context do

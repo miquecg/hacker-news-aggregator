@@ -5,7 +5,7 @@ defmodule HackerNews.Repo do
 
   alias HackerNews.Repo.TableOwner
 
-  @opaque continuation :: :"$end_of_table" | tuple()
+  @opaque continuation :: tuple()
 
   @type query ::
           {:limit, pos_integer()}
@@ -32,12 +32,15 @@ defmodule HackerNews.Repo do
 
   defp select_all(table, opts) do
     query = get(opts, :continue) || get(opts, :limit) || :all
-    select(table, query)
+
+    case select(table, query) do
+      {stories, :"$end_of_table"} -> stories
+      result -> result
+    end
   end
 
   defp get(opts, key), do: List.keyfind(opts, key, 0)
 
-  defp select(_table, {:continue, :"$end_of_table"}), do: []
   defp select(_table, {:continue, continuation}), do: :ets.select(continuation)
 
   defp select(table, {:limit, limit}) do
