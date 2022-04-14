@@ -89,6 +89,9 @@ defmodule HackerNews do
       {:ok, %{"id" => _} = story}, _ ->
         story
 
+      {:error, %ResourceError{} = error}, _ ->
+        error
+
       {:error, %Response{} = response}, resource ->
         build_error(:invalid_response, resource, response)
 
@@ -98,11 +101,7 @@ defmodule HackerNews do
     |> Enum.reduce(acc, &reducer/2)
   end
 
-  defp build_error(reason, resource, response \\ nil)
-
-  defp build_error(%ResourceError{} = error, _, _), do: error
-
-  defp build_error(reason, resource, response) when is_atom(reason) do
+  defp build_error(reason, resource, response \\ nil) when is_atom(reason) do
     %ResourceError{
       reason: reason,
       resource: resource,
@@ -110,11 +109,12 @@ defmodule HackerNews do
     }
   end
 
-  @spec reducer(error, fetch_results) :: fetch_results
-  defp reducer(%ResourceError{} = error, acc), do: put(acc, :errors, error)
+  @spec reducer(story | error, fetch_results) :: fetch_results
+  defp reducer(result, acc)
 
-  @spec reducer(story, fetch_results) :: fetch_results
-  defp reducer(%{} = story, acc), do: put(acc, :stories, story)
+  defp reducer(%ResourceError{} = error, acc), do: put(acc, :errors, error)
+  defp reducer(%{"type" => "story"} = story, acc), do: put(acc, :stories, story)
+  defp reducer(%{"type" => "job"}, acc), do: acc
 
   defp put(acc, key, elem) do
     {nil, acc} = get_and_update_in(acc, [key], &{nil, [elem | &1]})
