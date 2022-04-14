@@ -4,7 +4,7 @@ defmodule HackerNewsWeb.RouterTest do
   setup context do
     if context[:with_repo] do
       {:ok, pid} = Repo.save(stories())
-      on_exit(fn -> GenServer.stop(pid) end)
+      on_exit(fn -> Repo.stop(pid) end)
       [repo: pid]
     else
       :ok

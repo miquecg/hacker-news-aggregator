@@ -11,7 +11,7 @@ defmodule HackerNews.RepoTest do
       ]
 
       {:ok, pid} = Repo.save(stories)
-      on_exit(fn -> GenServer.stop(pid) end)
+      on_exit(fn -> Repo.stop(pid) end)
       [repo: pid]
     end
 
