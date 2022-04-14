@@ -36,7 +36,7 @@ defmodule HackerNewsApi.Client do
 
   @callback do_request(method, url, headers) :: ok(response) | error(exception)
 
-  @adapter Application.compile_env!(:hacker_news, :adapter)
+  @adapter Application.compile_env!(:hacker_news, [:api, :adapter])
   @defaults [{:retries, {4, 100, 500}}]
 
   @spec request(resource, opts) :: ok(response) | error(exception)

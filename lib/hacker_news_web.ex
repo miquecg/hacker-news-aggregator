@@ -7,7 +7,7 @@ defmodule HackerNewsWeb do
 
   def router do
     quote do
-      @plug_init_mode Application.compile_env(:hacker_news, :plug_init_mode, :compile)
+      @plug_init_mode Application.compile_env(:hacker_news, [:web, :plug_init_mode], :compile)
 
       use Plug.Router, init_mode: @plug_init_mode
 
