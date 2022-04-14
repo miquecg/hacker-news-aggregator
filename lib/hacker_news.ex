@@ -8,7 +8,7 @@ defmodule HackerNews do
   alias HackerNews.Repo
   alias HackerNewsApi.{Client, Client.Response, Error.ResourceError, Resource}
 
-  def get_stories, do: Repo.all()
+  def get_stories, do: Repo.all([])
 
   @type option ::
           {:max_items, pos_integer()}
