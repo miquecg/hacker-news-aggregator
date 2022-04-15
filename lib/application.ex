@@ -29,11 +29,13 @@ defmodule HackerNews.Application do
   end
 
   defp dispatch do
+    opts = Router.init([])
+
     [
       {:_,
        [
          {"/ws", WebsocketHandler, []},
-         {:_, Plug.Cowboy.Handler, {Router, []}}
+         {:_, Plug.Cowboy.Handler, {Router, opts}}
        ]}
     ]
   end
