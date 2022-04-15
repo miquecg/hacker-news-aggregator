@@ -26,7 +26,7 @@ defmodule HackerNewsWeb do
 
       defp render(conn, template) do
         [template, format] = :binary.split(template, ".")
-        body = StoryView.render(template, format, conn.assigns)
+        body = StoryView.render(template, format, conn)
 
         conn
         |> resp(conn.status || 200, body)
@@ -41,8 +41,8 @@ defmodule HackerNewsWeb do
 
   def view do
     quote do
-      def render(template, format, data) do
-        content = render_template(template, data)
+      def render(template, format, conn) do
+        content = render_template(template, conn.assigns, conn)
         encode(content, format)
       end
 
