@@ -20,13 +20,15 @@ defmodule HackerNewsWeb do
 
       @impl true
       def call(conn, opts) do
+        conn = put_private(conn, :view, StoryView)
         conn = %{conn | secret_key_base: opts[:secret]}
         super(conn, opts)
       end
 
       defp render(conn, template) do
         [template, format] = :binary.split(template, ".")
-        body = StoryView.render(template, format, conn)
+        module = conn.private.view
+        body = module.render(template, format, conn)
 
         conn
         |> resp(conn.status || 200, body)
@@ -36,6 +38,8 @@ defmodule HackerNewsWeb do
       defp resp_content_type(conn, "json") do
         put_resp_content_type(conn, "application/json")
       end
+
+      defp put_view(conn, module), do: put_private(conn, :view, module)
     end
   end
 
