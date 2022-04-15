@@ -25,8 +25,7 @@ defmodule HackerNewsWeb.StoryView do
       Plug.Crypto.sign(
         conn.secret_key_base,
         "next-page",
-        data,
-        max_age: 300
+        data
       )
 
     path = ["#{conn.request_path}", "?page=", "#{signed}"]
