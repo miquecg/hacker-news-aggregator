@@ -13,7 +13,7 @@ defmodule HackerNews do
 
   defp get(opts) do
     case Repo.all(opts) do
-      [_ | _] = stories -> %{stories: stories}
+      stories when is_list(stories) -> %{stories: stories}
       {stories, next} -> %{stories: stories, cursor: next}
     end
   end
