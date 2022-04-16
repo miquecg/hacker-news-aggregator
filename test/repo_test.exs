@@ -33,33 +33,33 @@ defmodule HackerNews.RepoTest do
       assert [%{"id" => 31_024_767} | _] = stories
     end
 
-    test "returns chunks of five stories", context do
-      {stories, continue} = Repo.all(context.repo, limit: 5)
+    test "returns all stories in several chunks", context do
+      {stories, :end_of_table, next} = Repo.all(context.repo, limit: 5)
 
       assert length(stories) == 5
       assert [%{"id" => 31_024_767} | _] = stories
 
-      {stories, continue} = Repo.all(context.repo, continue: continue)
+      {stories, _prev, next} = Repo.all(context.repo, cursor: next)
 
       assert length(stories) == 5
       assert [%{"id" => 31_021_652} | _] = stories
 
-      stories = Repo.all(context.repo, continue: continue)
+      {stories, _prev, :end_of_table} = Repo.all(context.repo, cursor: next)
 
       assert length(stories) == 3
       assert [%{"id" => 31_015_813} | _] = stories
     end
 
     test "returns a chunk as big as the table", context do
-      stories = Repo.all(context.repo, limit: 20)
+      {stories, :end_of_table, :end_of_table} = Repo.all(context.repo, limit: 20)
 
       assert length(stories) == 13
       assert [%{"id" => 31_024_767} | _] = stories
     end
 
     test "does not mix options", context do
-      {_, continue} = Repo.all(context.repo, limit: 5)
-      {stories, _} = Repo.all(context.repo, limit: 3, continue: continue)
+      {_, _prev, next} = Repo.all(context.repo, limit: 5)
+      {stories, _prev, _next} = Repo.all(context.repo, limit: 3, cursor: next)
 
       assert length(stories) == 5
     end

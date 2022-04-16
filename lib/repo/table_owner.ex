@@ -20,15 +20,10 @@ defmodule HackerNews.Repo.TableOwner do
     tab_stories = :ets.new(@tab_stories, [:set, @read_concurrency])
 
     _ =
-      Enum.reduce(stories, {1, 1}, fn story, {page, pos} ->
-        key = {page, pos}
+      Enum.scan(stories, 1, fn story, key ->
         :ets.insert(tab_pages, {key, story})
         :ets.insert(tab_stories, {story["id"], key})
-
-        cond do
-          pos < 10 -> {page, pos + 1}
-          pos == 10 -> {page + 1, 1}
-        end
+        key + 1
       end)
 
     %{pages: tab_pages, stories: tab_stories}
