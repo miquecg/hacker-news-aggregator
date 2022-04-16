@@ -41,15 +41,18 @@ defmodule HackerNews.Repo do
 
   defp get(opts, key), do: List.keyfind(opts, key, 0)
 
-  defp select(_table, {:continue, continuation}), do: :ets.select(continuation)
+  @match_spec [{{:_, :"$1"}, [], [:"$1"]}]
 
-  defp select(table, {:limit, limit}) do
-    :ets.select(table, [{{:_, :"$1"}, [], [:"$1"]}], limit)
+  defp select(_table, {:continue, continuation}) do
+    continuation
+    # See: https://www.erlang.org/doc/man/ets.html#repair_continuation-2
+    # Another approach for cursors: https://www.erlang.org/doc/man/qlc.html
+    |> :ets.repair_continuation(@match_spec)
+    |> :ets.select()
   end
 
-  defp select(table, :all) do
-    :ets.select(table, [{{:_, :"$1"}, [], [:"$1"]}])
-  end
+  defp select(table, {:limit, limit}), do: :ets.select(table, @match_spec, limit)
+  defp select(table, :all), do: :ets.select(table, @match_spec)
 
   @spec save([map()]) :: {:ok, pid()}
   def save(stories) do
