@@ -31,19 +31,19 @@ defmodule HackerNews do
     end
   end
 
-  @type option ::
+  @type fetch_option ::
           {:max_items, pos_integer()}
           | {:chunk_size, pos_integer()}
-  @type opts :: [option]
+  @type fetch_opts :: [fetch_option]
 
   @type story :: map()
   @type error :: ResourceError.t()
-  @type fetch_results :: %{stories: [story], errors: [error]}
+  @type fetch_result :: %{stories: [story], errors: [error]}
 
   @defaults [max_items: 50, chunk_size: 10]
   @client_opts [{:decode, {"application/json", &Jason.decode/1}}]
 
-  @spec fetch_top(opts) :: fetch_results
+  @spec fetch_top(fetch_opts) :: fetch_result
   def fetch_top(opts \\ []) do
     opts = Keyword.merge(@defaults, opts)
     {:ok, resource} = Resource.TopStories.new()
@@ -59,7 +59,7 @@ defmodule HackerNews do
 
   @typep ids :: [pos_integer()]
 
-  @spec request_many(ids, opts) :: fetch_results
+  @spec request_many(ids, fetch_opts) :: fetch_result
   defp request_many(ids, opts) when is_list(ids) do
     resources =
       ids
@@ -130,7 +130,7 @@ defmodule HackerNews do
     }
   end
 
-  @spec reducer(story | error, fetch_results) :: fetch_results
+  @spec reducer(story | error, fetch_result) :: fetch_result
   defp reducer(result, acc)
 
   defp reducer(%ResourceError{} = error, acc), do: put(acc, :errors, error)
