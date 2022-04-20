@@ -14,9 +14,7 @@ defmodule HackerNewsWeb.RouterTest do
   @tag :with_repo
   test "get /stories returns json" do
     conn = conn(:get, "/stories")
-
     conn = Router.call(conn, @opts)
-    response = json_response(conn, 200)
 
     assert %{
              "items" => [story | _],
@@ -26,9 +24,33 @@ defmodule HackerNewsWeb.RouterTest do
                "next" => _,
                "prev" => nil
              }
-           } = response
+           } = json_response(conn, 200)
 
     assert story["id"] == 31_003_071
+  end
+
+  @tag :with_repo
+  test "get /stories?page=<next>" do
+    conn = conn(:get, "/stories")
+
+    next =
+      conn
+      |> Router.call(@opts)
+      |> json_response(200)
+      |> get_in(["meta", "next"])
+
+    conn = conn(:get, next)
+    conn = Router.call(conn, @opts)
+
+    assert %{
+             "items" => [story | _],
+             "count" => 10,
+             "meta" => %{
+               "page" => 2
+             }
+           } = json_response(conn, 200)
+
+    assert story["id"] == 31_012_442
   end
 
   test "route not found" do
