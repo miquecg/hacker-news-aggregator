@@ -8,13 +8,26 @@ defmodule HackerNews do
   alias HackerNews.Repo
   alias HackerNewsApi.{Client, Client.Response, Error.ResourceError, Resource}
 
+  @type cursor :: Repo.cursor()
+  @type get_result :: %{
+          required(:stories) => [story],
+          optional(:prev) => cursor,
+          optional(:next) => cursor
+        }
+
+  @spec get_stories :: get_result
   def get_stories, do: get(limit: 10)
-  def get_stories(cursor), do: get(continue: cursor)
+
+  @spec get_stories(cursor) :: get_result
+  def get_stories(cursor), do: get(cursor: cursor)
 
   defp get(opts) do
     case Repo.all(opts) do
-      stories when is_list(stories) -> %{stories: stories}
-      {stories, next} -> %{stories: stories, cursor: next}
+      [] ->
+        %{stories: []}
+
+      {stories, prev, next} ->
+        %{stories: stories, prev: prev, next: next}
     end
   end
 
