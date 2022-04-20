@@ -2,29 +2,41 @@ defmodule HackerNewsWeb.StoryView do
   use HackerNewsWeb, :view
 
   defp render_template("collection", %{stories: stories} = data, conn) do
-    total = length(stories)
-
     %{
       items: stories,
-      total: total,
+      count: length(stories),
       meta: render_template("meta", data, conn)
     }
   end
 
-  @template_meta for key <- [:page, :next, :prev], into: %{}, do: {key, nil}
-
-  defp render_template("meta", %{cursor: cursor}, conn) do
-    %{@template_meta | page: 1, next: next_page(conn, {2, cursor})}
-  end
+  @template_meta %{
+    page: nil,
+    prev: nil,
+    next: nil
+  }
 
   defp render_template("meta", %{stories: []}, _conn), do: @template_meta
-  defp render_template("meta", %{stories: _}, _conn), do: %{@template_meta | page: 1}
 
-  defp next_page(conn, {_number, _cursor} = data) do
+  defp render_template("meta", data, conn) do
+    %{
+      @template_meta
+      | page: data.page,
+        prev: cursor_previous(data, conn),
+        next: cursor_next(data, conn)
+    }
+  end
+
+  defp cursor_previous(%{prev: :end_of_table}, _conn), do: nil
+  defp cursor_previous(data, conn), do: sign_url({data.page - 1, data.prev}, conn)
+
+  defp cursor_next(%{next: :end_of_table}, _conn), do: nil
+  defp cursor_next(data, conn), do: sign_url({data.page + 1, data.next}, conn)
+
+  defp sign_url({_page, _cursor} = data, conn) do
     signed =
       Plug.Crypto.sign(
         conn.secret_key_base,
-        "next-page",
+        "pages",
         data
       )
 

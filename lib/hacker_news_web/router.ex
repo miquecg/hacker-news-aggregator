@@ -15,14 +15,16 @@ defmodule HackerNewsWeb.Router do
   plug :dispatch
 
   get "/stories" do
-    result = HackerNews.get_stories()
-    view_data = Keyword.new(result)
+    result = get_stories(conn.assigns)
 
     conn
-    |> merge_assigns(view_data)
+    |> merge_assigns(Keyword.new(result))
     |> render("collection.json")
     |> send_resp()
   end
+
+  defp get_stories(%{cursor: cursor}), do: HackerNews.get_stories(cursor)
+  defp get_stories(_), do: HackerNews.get_stories()
 
   match _ do
     send_resp(conn, 404, "Not Found")
@@ -30,8 +32,8 @@ defmodule HackerNewsWeb.Router do
 
   defp verify_token(%{path_info: ["stories"]} = conn, _opts) do
     with {:ok, token} <- Map.fetch(conn.query_params, "page"),
-         {:ok, {_, _} = cursor} <- verify(conn.secret_key_base, token) do
-      assign(conn, :cursor, cursor)
+         {:ok, {page, cursor}} <- verify(conn.secret_key_base, token) do
+      merge_assigns(conn, page: page, cursor: cursor)
     else
       {:error, error} ->
         conn
@@ -40,7 +42,7 @@ defmodule HackerNewsWeb.Router do
         |> halt()
 
       _ ->
-        conn
+        assign(conn, :page, 1)
     end
   end
 
@@ -49,7 +51,7 @@ defmodule HackerNewsWeb.Router do
   defp verify(key_base, token) do
     Plug.Crypto.verify(
       key_base,
-      "next-page",
+      "pages",
       token,
       max_age: 300
     )

@@ -20,7 +20,7 @@ defmodule HackerNewsWeb.RouterTest do
 
     assert %{
              "items" => [story | _],
-             "total" => 10,
+             "count" => 10,
              "meta" => %{
                "page" => 1,
                "next" => _,
