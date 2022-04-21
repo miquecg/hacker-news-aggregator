@@ -8,9 +8,9 @@ defmodule HackerNews do
   alias HackerNews.Repo
   alias HackerNewsApi.{Client, Client.Response, Error.ResourceError, Resource}
 
-  @type story :: map()
+  @typep story :: map()
+  @typep cursor :: Repo.cursor()
 
-  @type cursor :: Repo.cursor()
   @type paginated :: %{
           required(:stories) => [story],
           optional(:prev) => cursor,

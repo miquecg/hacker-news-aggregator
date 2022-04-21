@@ -15,10 +15,8 @@ defmodule HackerNewsWeb.Router do
   plug :dispatch
 
   get "/stories" do
-    result = get_stories(conn.assigns)
-
     conn
-    |> merge_assigns(Keyword.new(result))
+    |> get_stories()
     |> render("collection.json")
     |> reply()
   end
@@ -68,8 +66,15 @@ defmodule HackerNewsWeb.Router do
     )
   end
 
-  defp get_stories(%{cursor: cursor}), do: HackerNews.get_stories(cursor)
-  defp get_stories(_), do: HackerNews.get_stories()
+  defp get_stories(%{assigns: %{cursor: cursor}} = conn) do
+    result = HackerNews.get_stories(cursor)
+    merge_assigns(conn, Keyword.new(result))
+  end
+
+  defp get_stories(conn) do
+    result = HackerNews.get_stories()
+    merge_assigns(conn, Keyword.new(result))
+  end
 
   defp get_by(conn) do
     if story = HackerNews.get_by(conn.assigns.id) do
