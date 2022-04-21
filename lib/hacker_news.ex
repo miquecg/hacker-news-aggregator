@@ -116,7 +116,7 @@ defmodule HackerNews do
   defp zip_with(results, resources, acc) do
     results
     |> Stream.zip_with(resources, fn
-      {:ok, %{"id" => _} = story}, _ ->
+      {:ok, %{"id" => id} = story}, _ when is_integer(id) ->
         story
 
       {:error, %ResourceError{} = error}, _ ->

@@ -1,6 +1,8 @@
 defmodule HackerNewsWeb.StoryView do
   use HackerNewsWeb, :view
 
+  defp render_template("item", %{story: story}, _conn), do: story
+
   defp render_template("collection", %{stories: stories} = data, conn) do
     %{
       items: stories,

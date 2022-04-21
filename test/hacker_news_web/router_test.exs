@@ -12,7 +12,7 @@ defmodule HackerNewsWeb.RouterTest do
   end
 
   @tag :with_repo
-  test "get /stories returns json" do
+  test "get /stories" do
     conn = conn(:get, "/stories")
     conn = Router.call(conn, @opts)
 
@@ -51,6 +51,32 @@ defmodule HackerNewsWeb.RouterTest do
            } = json_response(conn, 200)
 
     assert story["id"] == 31_012_442
+  end
+
+  @tag :with_repo
+  test "get /stories/:id" do
+    conn = conn(:get, "/stories/31003071")
+    conn = Router.call(conn, @opts)
+
+    assert %{
+             "id" => 31_003_071,
+             "by" => "georgesequeira"
+           } = json_response(conn, 200)
+  end
+
+  test "get /stories/:id when not found" do
+    conn = conn(:get, "/stories/1")
+    conn = Router.call(conn, @opts)
+
+    assert conn.status == 404
+    assert conn.resp_body == "Not Found"
+  end
+
+  test "get /stories/:id when not a number" do
+    conn = conn(:get, "/stories/not_a_number")
+    conn = Router.call(conn, @opts)
+
+    assert conn.status == 400
   end
 
   test "route not found" do
