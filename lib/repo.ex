@@ -5,6 +5,12 @@ defmodule HackerNews.Repo do
 
   alias HackerNews.Repo.TableOwner
 
+  @spec get(pos_integer()) :: [map()]
+  def get(id), do: select({:id, id})
+
+  @spec get(pid(), pos_integer()) :: [map()]
+  def get(repo, id), do: select(repo, {:id, id})
+
   @opaque continuation :: {tuple(), limit :: pos_integer()}
 
   @type cursor :: continuation | :end_of_table
@@ -30,10 +36,10 @@ defmodule HackerNews.Repo do
 
   defp get_query(opts) do
     {:ok, opts} = Keyword.validate(opts, [:cursor, :limit])
-    get(opts, :cursor) || get(opts, :limit) || :all
+    option(opts, :cursor) || option(opts, :limit) || :all
   end
 
-  defp get(opts, key), do: List.keyfind(opts, key, 0)
+  defp option(opts, key), do: List.keyfind(opts, key, 0)
 
   defp select(repo \\ nil, query)
 
@@ -45,19 +51,28 @@ defmodule HackerNews.Repo do
 
   defp select(repo, query) when is_pid(repo) do
     case TableOwner.get_tables(repo) do
-      {:ok, %{pages: table}} -> do_select(table, query)
+      {:ok, tables} -> do_select(tables, query)
       {:error, :no_tables} -> []
     end
   end
 
   defp select(_, query) do
     case TableOwner.get_tables() do
-      {:ok, %{pages: table}} -> do_select(table, query)
+      {:ok, tables} -> do_select(tables, query)
       {:error, :no_tables} -> []
     end
   end
 
   @select [{:"$1", [], [:"$1"]}]
+
+  defp do_select(tables, {:id, id}) do
+    with [{_, key}] <- :ets.lookup(tables.stories, id),
+         [{_, story}] <- :ets.lookup(tables.pages, key) do
+      [story]
+    end
+  end
+
+  defp do_select(%{pages: pages}, query), do: do_select(pages, query)
 
   defp do_select(table, :all) do
     stories = :ets.select(table, @select)

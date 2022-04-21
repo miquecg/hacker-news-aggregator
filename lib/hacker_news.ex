@@ -8,20 +8,22 @@ defmodule HackerNews do
   alias HackerNews.Repo
   alias HackerNewsApi.{Client, Client.Response, Error.ResourceError, Resource}
 
+  @type story :: map()
+
   @type cursor :: Repo.cursor()
-  @type get_result :: %{
+  @type paginated :: %{
           required(:stories) => [story],
           optional(:prev) => cursor,
           optional(:next) => cursor
         }
 
-  @spec get_stories :: get_result
-  def get_stories, do: get(limit: 10)
+  @spec get_stories :: paginated
+  def get_stories, do: all(limit: 10)
 
-  @spec get_stories(cursor) :: get_result
-  def get_stories(cursor), do: get(cursor: cursor)
+  @spec get_stories(cursor) :: paginated
+  def get_stories(cursor), do: all(cursor: cursor)
 
-  defp get(opts) do
+  defp all(opts) do
     case Repo.all(opts) do
       [] ->
         %{stories: []}
@@ -31,12 +33,19 @@ defmodule HackerNews do
     end
   end
 
+  @spec get_by(pos_integer()) :: story | nil
+  def get_by(id) do
+    case Repo.get(id) do
+      [story] -> story
+      [] -> nil
+    end
+  end
+
   @type fetch_option ::
           {:max_items, pos_integer()}
           | {:chunk_size, pos_integer()}
   @type fetch_opts :: [fetch_option]
 
-  @type story :: map()
   @type error :: ResourceError.t()
   @type fetch_result :: %{stories: [story], errors: [error]}
 
