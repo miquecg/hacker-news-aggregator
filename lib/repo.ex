@@ -133,8 +133,7 @@ defmodule HackerNews.Repo do
 
   @spec save([map()]) :: {:ok, pid()}
   def save(stories) do
-    tables = TableOwner.create_tables(stories)
-    TableOwner.activate(tables)
+    {:ok, _} = TableOwner.create_tables(stories)
   end
 
   defdelegate stop(pid), to: TableOwner

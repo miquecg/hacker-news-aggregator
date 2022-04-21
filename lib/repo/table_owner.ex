@@ -8,35 +8,15 @@ defmodule HackerNews.Repo.TableOwner do
   alias __MODULE__.State
   alias HackerNews.{Repo, RepoSupervisor}
 
-  @typep tables :: %{pages: :ets.tid(), stories: :ets.tid()}
-
-  @tab_pages Repo.Pages
-  @tab_stories Repo.Stories
-  @read_concurrency {:read_concurrency, true}
-
-  @spec create_tables([map()]) :: tables
+  @spec create_tables([map()]) :: DynamicSupervisor.on_start_child()
   def create_tables(stories) do
-    tab_pages = :ets.new(@tab_pages, [:ordered_set, @read_concurrency])
-    tab_stories = :ets.new(@tab_stories, [:set, @read_concurrency])
-
-    _ =
-      Enum.scan(stories, 1, fn story, key ->
-        :ets.insert(tab_pages, {key, story})
-        :ets.insert(tab_stories, {story["id"], key})
-        key + 1
-      end)
-
-    %{pages: tab_pages, stories: tab_stories}
+    child_spec = {__MODULE__, stories: stories}
+    # It may be appropriate to trigger GC on the repo process after
+    # creation if we are sending a very big payload on init.
+    DynamicSupervisor.start_child(RepoSupervisor, child_spec)
   end
 
-  @spec activate(tables) :: {:ok, pid()}
-  def activate(tables) do
-    return = {:ok, pid} = DynamicSupervisor.start_child(RepoSupervisor, __MODULE__)
-    :ets.give_away(tables.pages, pid, @tab_pages)
-    :ets.give_away(tables.stories, pid, @tab_stories)
-    :ok = GenServer.call(pid, :register)
-    return
-  end
+  @typep tables :: %{pages: :ets.tid(), stories: :ets.tid()}
 
   @spec get_tables :: {:ok, tables} | {:error, :no_tables}
   def get_tables do
@@ -73,7 +53,9 @@ defmodule HackerNews.Repo.TableOwner do
 
   @spec start_link(weight_fn, options) :: on_start
   def start_link(weight_fn, opts) do
-    GenServer.start_link(__MODULE__, weight_fn.(), opts)
+    {stories, opts} = Keyword.split(opts, [:stories])
+    init_arg = Keyword.merge(stories, weight: weight_fn.())
+    GenServer.start_link(__MODULE__, init_arg, opts)
   end
 
   @spec stop(pid()) :: :ok
@@ -84,42 +66,44 @@ defmodule HackerNews.Repo.TableOwner do
   defmodule State do
     @moduledoc false
 
-    defstruct [:pages, :stories, :weight, active?: false]
+    @enforce_keys [:weight]
+    defstruct @enforce_keys
 
     @type t :: %__MODULE__{
-            active?: boolean(),
-            pages: :ets.tid(),
-            stories: :ets.tid(),
             weight: pos_integer()
           }
   end
 
   @impl true
-  def init(weight) do
-    {:ok, struct!(State, weight: weight)}
+  def init(opts) do
+    {stories, opts} = Keyword.pop!(opts, :stories)
+    next = {:save, stories}
+    {:ok, struct!(State, opts), {:continue, next}}
   end
 
-  @impl true
-  def handle_call(:register, _from, state) when state.active? do
-    {:reply, {:error, :already_active}, state}
-  end
+  @tab_pages Repo.Pages
+  @tab_stories Repo.Stories
+  @read_concurrency {:read_concurrency, true}
 
   @impl true
-  def handle_call(:register, _from, state) when not state.active? do
+  def handle_continue({:save, stories}, state) do
+    tab_pages = :ets.new(@tab_pages, [:ordered_set, @read_concurrency])
+    tab_stories = :ets.new(@tab_stories, [:set, @read_concurrency])
+
+    _ =
+      Enum.scan(stories, 1, fn story, key ->
+        :ets.insert(tab_pages, {key, story})
+        :ets.insert(tab_stories, {story["id"], key})
+        key + 1
+      end)
+
+    tables = %{pages: tab_pages, stories: tab_stories}
+    {:ok, _} = register(tables, state.weight)
+    {:noreply, state}
+  end
+
+  defp register(%{} = tables, weight) do
     key = __MODULE__
-    weight = state.weight
-    tables = Map.take(state, [:pages, :stories])
-    {:ok, _} = Registry.register(Registry.Tables, key, {weight, tables})
-    {:reply, :ok, %{state | active?: true}}
-  end
-
-  @impl true
-  def handle_info({:"ETS-TRANSFER", ref, _from, @tab_pages}, %{pages: nil} = state) do
-    {:noreply, %{state | pages: ref}}
-  end
-
-  @impl true
-  def handle_info({:"ETS-TRANSFER", ref, _from, @tab_stories}, %{stories: nil} = state) do
-    {:noreply, %{state | stories: ref}}
+    Registry.register(Registry.Tables, key, {weight, tables})
   end
 end
