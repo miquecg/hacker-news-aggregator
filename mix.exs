@@ -30,6 +30,7 @@ defmodule HackerNews.MixProject do
       {:jason, "~> 1.3"},
       {:plug_cowboy, "~> 2.5"},
       {:plug_crypto, "~> 1.2"},
+      {:sched_ex, "~> 1.1"},
       {:credo, "~> 1.6", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
