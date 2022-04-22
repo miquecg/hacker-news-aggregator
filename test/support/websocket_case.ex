@@ -13,7 +13,7 @@ defmodule HackerNews.WebsocketCase do
 
   setup do
     # Hardcoded server and port for the moment.
-    {:ok, conn} = Mint.HTTP.connect(:http, "localhost", 4001)
+    {:ok, conn} = Mint.HTTP.connect(:http, "localhost", 4002)
 
     # Request connection be upgraded to the WebSocket protocol.
     {:ok, conn, ref} = Mint.WebSocket.upgrade(:ws, conn, "/ws", [])

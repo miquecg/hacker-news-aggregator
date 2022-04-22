@@ -41,7 +41,7 @@ defmodule HackerNews.Application do
   end
 
   defp port do
-    port = System.get_env("PORT", "4001")
-    String.to_integer(port)
+    opts = Application.fetch_env!(:hacker_news, :web)
+    Keyword.fetch!(opts, :port)
   end
 end
