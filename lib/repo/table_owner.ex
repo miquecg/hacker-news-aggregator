@@ -8,12 +8,20 @@ defmodule HackerNews.Repo.TableOwner do
   alias __MODULE__.State
   alias HackerNews.{Repo, RepoSupervisor}
 
-  @spec create_tables([map()]) :: DynamicSupervisor.on_start_child()
+  @typep story :: map() | {non_neg_integer(), map()}
+
+  @spec create_tables([story]) :: DynamicSupervisor.on_start_child()
   def create_tables(stories) do
-    child_spec = {__MODULE__, stories: stories}
+    child_spec = {__MODULE__, stories: index(stories)}
     # It may be appropriate to trigger GC on the repo process after
     # creation if we are sending a very big payload on init.
     DynamicSupervisor.start_child(RepoSupervisor, child_spec)
+  end
+
+  defp index([{_, %{}} | _] = stories), do: stories
+
+  defp index(stories) do
+    Enum.with_index(stories, fn %{} = story, index -> {index, story} end)
   end
 
   @typep tables :: %{pages: :ets.tid(), stories: :ets.tid()}
@@ -90,12 +98,11 @@ defmodule HackerNews.Repo.TableOwner do
     tab_pages = :ets.new(@tab_pages, [:ordered_set, @read_concurrency])
     tab_stories = :ets.new(@tab_stories, [:set, @read_concurrency])
 
-    _ =
-      Enum.scan(stories, 1, fn story, key ->
-        :ets.insert(tab_pages, {key, story})
-        :ets.insert(tab_stories, {story["id"], key})
-        key + 1
-      end)
+    :ets.insert(tab_pages, stories)
+
+    Enum.each(stories, fn {index, %{"id" => id}} ->
+      :ets.insert(tab_stories, {id, index})
+    end)
 
     tables = %{pages: tab_pages, stories: tab_stories}
     {:ok, _} = register(tables, state.weight)
