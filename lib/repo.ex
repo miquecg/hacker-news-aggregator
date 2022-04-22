@@ -147,9 +147,7 @@ defmodule HackerNews.Repo do
   defp drop_index(stories), do: for({_pos, story} <- stories, do: story)
 
   @spec save([map()]) :: {:ok, pid()}
-  def save(stories) do
-    {:ok, _} = TableOwner.create_tables(stories)
-  end
+  def save(stories), do: TableOwner.create_tables(stories)
 
   defdelegate stop(pid), to: TableOwner
 end

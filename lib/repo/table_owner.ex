@@ -10,12 +10,12 @@ defmodule HackerNews.Repo.TableOwner do
 
   @typep story :: map() | {non_neg_integer(), map()}
 
-  @spec create_tables([story]) :: DynamicSupervisor.on_start_child()
+  @spec create_tables([story]) :: {:ok, pid()}
   def create_tables(stories) do
-    child_spec = {__MODULE__, stories: index(stories)}
-    # It may be appropriate to trigger GC on the repo process after
-    # creation if we are sending a very big payload on init.
-    DynamicSupervisor.start_child(RepoSupervisor, child_spec)
+    # It may be appropriate to trigger GC on repo after tables creation.
+    {:ok, repo} = DynamicSupervisor.start_child(RepoSupervisor, __MODULE__)
+    :ok = GenServer.call(repo, {:save, index(stories)})
+    {:ok, repo}
   end
 
   defp index([{_, %{}} | _] = stories), do: stories
@@ -61,9 +61,7 @@ defmodule HackerNews.Repo.TableOwner do
 
   @spec start_link(weight_fn, options) :: on_start
   def start_link(weight_fn, opts) do
-    {stories, opts} = Keyword.split(opts, [:stories])
-    init_arg = Keyword.merge(stories, weight: weight_fn.())
-    GenServer.start_link(__MODULE__, init_arg, opts)
+    GenServer.start_link(__MODULE__, weight_fn.(), opts)
   end
 
   @spec stop(pid()) :: :ok
@@ -75,18 +73,17 @@ defmodule HackerNews.Repo.TableOwner do
     @moduledoc false
 
     @enforce_keys [:weight]
-    defstruct @enforce_keys
+    defstruct @enforce_keys ++ [active?: false]
 
     @type t :: %__MODULE__{
+            active?: boolean(),
             weight: pos_integer()
           }
   end
 
   @impl true
-  def init(opts) do
-    {stories, opts} = Keyword.pop!(opts, :stories)
-    next = {:save, stories}
-    {:ok, struct!(State, opts), {:continue, next}}
+  def init(weight) do
+    {:ok, %State{weight: weight}}
   end
 
   @tab_pages Repo.Pages
@@ -94,7 +91,7 @@ defmodule HackerNews.Repo.TableOwner do
   @read_concurrency {:read_concurrency, true}
 
   @impl true
-  def handle_continue({:save, stories}, state) do
+  def handle_call({:save, stories}, _from, state) when not state.active? do
     tab_pages = :ets.new(@tab_pages, [:ordered_set, @read_concurrency])
     tab_stories = :ets.new(@tab_stories, [:set, @read_concurrency])
 
@@ -106,7 +103,7 @@ defmodule HackerNews.Repo.TableOwner do
 
     tables = %{pages: tab_pages, stories: tab_stories}
     {:ok, _} = register(tables, state.weight)
-    {:noreply, state}
+    {:reply, :ok, %{state | active?: true}}
   end
 
   defp register(%{} = tables, weight) do
