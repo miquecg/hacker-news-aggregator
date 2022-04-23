@@ -66,5 +66,11 @@ defmodule HackerNews.Commands do
     [{last + 1, story} | acc]
   end
 
-  def log_errors(_errors), do: :ok
+  def log_errors([]), do: :ok
+
+  # For now just throw everything to stdout.
+  def log_errors(errors) do
+    IO.puts(inspect(errors))
+    :ok
+  end
 end
