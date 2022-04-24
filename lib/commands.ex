@@ -73,4 +73,18 @@ defmodule HackerNews.Commands do
     IO.puts(inspect(errors))
     :ok
   end
+
+  @spec remove_old_repos :: :ok | :none
+  def remove_old_repos do
+    all = Registry.lookup(Registry.Tables, TableOwner)
+    remove_old_repos(all)
+  end
+
+  defp remove_old_repos([]), do: :none
+  defp remove_old_repos([_]), do: :none
+
+  defp remove_old_repos(all) do
+    [_ | old] = Enum.sort_by(all, fn {_pid, tables} -> tables end, :desc)
+    Enum.each(old, fn {pid, _} -> TableOwner.stop(pid, 2_000) end)
+  end
 end

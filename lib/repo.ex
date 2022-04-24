@@ -149,5 +149,6 @@ defmodule HackerNews.Repo do
   @spec save([map()]) :: {:ok, pid()}
   def save(stories), do: TableOwner.create_tables(stories)
 
-  defdelegate stop(pid), to: TableOwner
+  @spec stop(pid()) :: :ok
+  def stop(pid), do: TableOwner.stop(pid)
 end

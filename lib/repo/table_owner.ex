@@ -64,8 +64,10 @@ defmodule HackerNews.Repo.TableOwner do
     GenServer.start_link(__MODULE__, weight_fn.(), opts)
   end
 
-  @spec stop(pid()) :: :ok
-  def stop(pid), do: GenServer.stop(pid)
+  @spec stop(pid(), timeout()) :: :ok
+  def stop(pid, timeout \\ :infinity) do
+    GenServer.stop(pid, :normal, timeout)
+  end
 
   ### CALLBACKS
 
