@@ -10,7 +10,9 @@ defmodule HackerNews.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+      releases: releases(),
+      default_release: :app
     ]
   end
 
@@ -61,6 +63,18 @@ defmodule HackerNews.MixProject do
         :error_handling,
         :race_conditions,
         :underspecs
+      ]
+    ]
+  end
+
+  defp releases do
+    [
+      app: [
+        applications: [
+          runtime_tools: :load,
+          hacker_news: :permanent
+        ],
+        include_executables_for: [:unix]
       ]
     ]
   end
