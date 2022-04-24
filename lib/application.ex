@@ -3,7 +3,8 @@ defmodule HackerNews.Application do
 
   use Application
 
-  alias HackerNews.{Commands, RepoSupervisor}
+  alias HackerNews.RepoSupervisor
+  alias HackerNews.ScheduledTask.UpdateStories
   alias HackerNewsWeb.{Router, WebsocketHandler}
 
   @impl true
@@ -62,14 +63,8 @@ defmodule HackerNews.Application do
     {:ok, _} =
       DynamicSupervisor.start_child(
         HackerNews.ScheduledTaskSupervisor,
-        %{
-          id: "update-stories",
-          start: {SchedEx, :run_every, mfa_for_task() ++ [crontab()]}
-        }
+        # Every five minutes.
+        {UpdateStories, crontab: "*/5 * * * *"}
       )
   end
-
-  defp mfa_for_task, do: [Commands, :update_stories, []]
-  # Every five minutes.
-  defp crontab, do: "*/5 * * * *"
 end
