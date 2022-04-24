@@ -19,6 +19,10 @@ defmodule HackerNews.Application do
         strategy: :one_for_one, name: HackerNews.ScheduledTaskSupervisor
       },
       {
+        Registry,
+        keys: :duplicate, name: Registry.Websockets, partitions: System.schedulers_online()
+      },
+      {
         Plug.Cowboy,
         scheme: :http,
         plug: Router,

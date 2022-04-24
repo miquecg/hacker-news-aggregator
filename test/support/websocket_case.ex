@@ -5,10 +5,23 @@ defmodule HackerNews.WebsocketCase do
 
   use ExUnit.CaseTemplate
 
+  alias HackerNews.Repo
+
   using do
     quote do
       import HackerNews.WebsocketCase
     end
+  end
+
+  @stories [
+    %{"id" => 1},
+    %{"id" => 2},
+    %{"id" => 3}
+  ]
+
+  setup do
+    {:ok, pid} = Repo.save(@stories)
+    on_exit(fn -> Repo.stop(pid) end)
   end
 
   setup do

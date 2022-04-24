@@ -4,11 +4,13 @@ defmodule HackerNews.Commands do
   """
 
   alias HackerNews.Repo.TableOwner
+  alias HackerNewsWeb.WebsocketHandler
 
   @spec update_stories :: :ok
   def update_stories do
     %{stories: top_stories, errors: errors} = HackerNews.fetch_top()
     :ok = load_repo(top_stories)
+    :ok = push_update(top_stories)
     :ok = log_errors(errors)
   end
 
@@ -43,9 +45,9 @@ defmodule HackerNews.Commands do
     new_with_index
   end
 
-  defp discard_fn([first | _] = stories) do
+  defp discard_fn([%{"id" => first} | _] = stories) do
     {lookup_table, lowest_id} =
-      Enum.reduce(stories, {%{}, first["id"]}, fn
+      Enum.reduce(stories, {%{}, first}, fn
         %{"id" => id}, {acc, lowest_id} ->
           {Map.put(acc, id, nil), min(lowest_id, id)}
       end)
@@ -64,6 +66,20 @@ defmodule HackerNews.Commands do
 
   defp prepend_with_index(story, [{last, _} | _] = acc) do
     [{last + 1, story} | acc]
+  end
+
+  def push_update(new_stories) do
+    Registry.dispatch(
+      Registry.Websockets,
+      WebsocketHandler,
+      &dispatch(&1, new_stories),
+      parallel: true
+    )
+  end
+
+  defp dispatch(entries, stories) do
+    updated = for %{"id" => id} <- stories, do: id
+    Enum.each(entries, fn {pid, past} -> send(pid, {:update, past, updated}) end)
   end
 
   def log_errors([]), do: :ok
