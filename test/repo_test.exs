@@ -57,6 +57,17 @@ defmodule HackerNews.RepoTest do
       assert [%{"id" => 31_024_767} | _] = stories
     end
 
+    test "cursors work when last result size matches limit", context do
+      {stories, :end_of_table, out_of_bounds} = Repo.all(context.repo, limit: 13)
+
+      assert length(stories) == 13
+
+      {[], prev, :end_of_table} = Repo.all(context.repo, cursor: out_of_bounds)
+      {stories, :end_of_table, :end_of_table} = Repo.all(context.repo, cursor: prev)
+
+      assert length(stories) == 13
+    end
+
     test "does not mix options", context do
       {_, _prev, next} = Repo.all(context.repo, limit: 5)
       {stories, _prev, _next} = Repo.all(context.repo, limit: 3, cursor: next)

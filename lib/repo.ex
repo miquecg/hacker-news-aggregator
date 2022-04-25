@@ -136,8 +136,8 @@ defmodule HackerNews.Repo do
     {prev, next}
   end
 
-  defp cursor_down(to, table, limit) when to >= 1 do
-    from = max(to - limit + 1, 1)
+  defp cursor_down(to, table, limit) when to >= 0 do
+    from = max(to - limit + 1, 0)
     {{:match, table, from..to}, limit}
   end
 
