@@ -16,7 +16,7 @@ defmodule HackerNewsWeb.WebsocketHandler do
 
   @impl :cowboy_websocket
   def websocket_init(state) do
-    {stories, _, _} = Repo.all(limit: 50)
+    stories = get_stories()
     ids = for %{"id" => id} <- stories, do: id
     :ok = register_value(:sets.from_list(ids))
     commands = [{:active, false}] ++ reply(stories)
@@ -33,6 +33,13 @@ defmodule HackerNewsWeb.WebsocketHandler do
     new = :sets.subtract(:sets.from_list(updated), past)
     :ok = update_value(past, new)
     {reply(new), state, :hibernate}
+  end
+
+  defp get_stories do
+    case Repo.all(limit: 50) do
+      {stories, _, _} -> stories
+      [] -> []
+    end
   end
 
   defp register_value(value) do
