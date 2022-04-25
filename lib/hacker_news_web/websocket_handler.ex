@@ -60,7 +60,9 @@ defmodule HackerNewsWeb.WebsocketHandler do
   end
 
   defp reply(set) do
-    stories = :sets.to_list(set)
-    reply(stories)
+    set
+    |> :sets.to_list()
+    |> Repo.get()
+    |> reply()
   end
 end

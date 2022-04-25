@@ -5,11 +5,14 @@ defmodule HackerNews.Repo do
 
   alias HackerNews.Repo.TableOwner
 
-  @spec get(pos_integer()) :: [map()]
-  def get(id), do: select({:id, id})
+  @typep id :: pos_integer()
+  @typep ids :: id | [id]
 
-  @spec get(pid(), pos_integer()) :: [map()]
-  def get(repo, id), do: select(repo, {:id, id})
+  @spec get(ids) :: [map()]
+  def get(ids), do: select({:id_in, List.wrap(ids)})
+
+  @spec get(pid(), ids) :: [map()]
+  def get(repo, ids), do: select(repo, {:id_in, List.wrap(ids)})
 
   @opaque continuation :: {tuple(), limit :: pos_integer()}
 
@@ -63,16 +66,21 @@ defmodule HackerNews.Repo do
     end
   end
 
-  @select [{:"$1", [], [:"$1"]}]
-
-  defp do_select(tables, {:id, id}) do
+  defp do_select(tables, {:id_in, [id]}) do
     with [{_, key}] <- :ets.lookup(tables.stories, id),
          [{_, story}] <- :ets.lookup(tables.pages, key) do
       [story]
     end
   end
 
+  defp do_select(tables, {:id_in, ids}) do
+    ids = :ets.select(tables.stories, match_values(ids))
+    :ets.select(tables.pages, match_values(ids))
+  end
+
   defp do_select(%{pages: pages}, query), do: do_select(pages, query)
+
+  @select [{:"$1", [], [:"$1"]}]
 
   defp do_select(table, :all) do
     stories = :ets.select(table, @select)
@@ -88,8 +96,7 @@ defmodule HackerNews.Repo do
   end
 
   defp do_select(table, {:cursor, {{:match, indexes}, limit}}) do
-    match_spec = for key <- indexes, do: {{key, :_}, [], [:"$_"]}
-    {stories, _} = :ets.select(table, match_spec, limit)
+    {stories, _} = :ets.select(table, match_full(indexes), limit)
     {prev, next} = create_cursors(table, stories, limit)
     {drop_index(stories), prev, next}
   end
@@ -102,8 +109,10 @@ defmodule HackerNews.Repo do
     process_result(table, result, limit)
   end
 
-  # Last result size matches limit so next
-  # continuation is out of bounds.
+  defp match_values(keys), do: for(key <- keys, do: {{key, :"$1"}, [], [:"$1"]})
+  defp match_full(keys), do: for(key <- keys, do: {{key, :_}, [], [:"$_"]})
+
+  # Last result size matched limit so next continuation is out of bounds.
   defp process_result(table, :"$end_of_table", limit) do
     last = :ets.last(table)
     {[], cursor_down(last, table, limit), :end_of_table}
