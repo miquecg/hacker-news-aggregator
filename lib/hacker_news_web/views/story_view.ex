@@ -17,7 +17,7 @@ defmodule HackerNewsWeb.StoryView do
     next: nil
   }
 
-  defp render_template("meta", %{stories: []}, _conn), do: @template_meta
+  defp render_template("meta", %{stories: [], page: 1}, _conn), do: @template_meta
 
   defp render_template("meta", data, conn) do
     %{
